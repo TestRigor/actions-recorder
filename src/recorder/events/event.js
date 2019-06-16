@@ -43,7 +43,7 @@ export default class Event {
 
   index(sibling, name) {
     if (sibling) {
-      return this.index(sibling.previousElementSibling, name || sibling.localName) + (sibling.localName === name)
+      return this.index(sibling.previousElementSibling, name || sibling.localName) + (sibling.localName === name);
     }
     return 1;
   }

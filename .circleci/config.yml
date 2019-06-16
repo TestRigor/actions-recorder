@@ -1,15 +1,26 @@
-# Use the latest 2.1 version of CircleCI pipeline processing engine, see https://circleci.com/docs/2.0/configuration-reference/
 version: 2.1
-
-# Use a package of configuration called an orb, see https://circleci.com/docs/2.0/orb-intro/
 orbs:
-  # Declare a dependency on the welcome-orb
-  welcome: circleci/welcome-orb@0.3.1
-
-# Orchestrate or schedule a set of jobs, see https://circleci.com/docs/2.0/workflows/
+  aws-s3: circleci/aws-s3@1.0.10
+jobs:
+  cdn:
+    docker:
+    - image: 'circleci/node'
+    steps:
+    - checkout
+    - run:
+        name: Build
+        command: |
+          npm run build
+    - aws-s3/copy:
+        from: lib/actions-recorder.min.js
+        to: 's3://${BUCKET}/actions-recorder.min.js'
+        arguments: |
+          --acl public-read
 workflows:
-  # Name the workflow "Welcome"
-  Welcome:
-    # Run the welcome/run job in its own container
+  version: 2
+  publish:
     jobs:
-    - welcome/run
+    - cdn:
+        filters:
+          branches:
+            only: master
