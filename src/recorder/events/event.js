@@ -5,8 +5,10 @@ export default class Event {
     if (!element) {
       return;
     }
+    if (!this.isHtmlOrBody(element)) {
+      this.innerText = element.innerText;
+    }
     this.className = element.className;
-    this.innerText = element.innerText;
     this.resourceId = element.id;
     this.clientHeight = element.clientHeight;
     this.clientWidth = element.clientWidth;
@@ -24,13 +26,9 @@ export default class Event {
     this.hidden = element.hidden;
     this.tagName = element.tagName;
     this.xpath = this.getXPathForElement(element);
-
-    if (this.shouldAddHtml(element)) {
-      this.html = element.outerHTML;
-    }
   }
 
-  shouldAddHtml(element) {
+  isHtmlOrBody(element) {
     return element.nodeName !== 'HTML' && element.nodeName !== 'BODY';
   }
 

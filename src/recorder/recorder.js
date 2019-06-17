@@ -14,7 +14,7 @@ export default class Recorder {
           tap(err => {
             console.error('Got error', err);
           }),
-          delay(2000)
+          delay(5000)
         )
       )
     ).subscribe();
