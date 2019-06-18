@@ -29,6 +29,7 @@
     "webpack-dev-server": "^3.4.1"
   },
   "dependencies": {
-    "rxjs": "^6.5.2"
+    "rxjs": "^6.5.2",
+    "session-management-js": "^0.0.1"
   }
 }
