@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "build": "npx webpack --config webpack.config.js --mode=production --env.RECORDER_URL='wss://recorder.testrigor.ai'",
+    "build": "npx webpack --config webpack.config.js --mode=production --env.RECORDER_URL='wss://recorder.testrigor.com'",
     "dev": "npx webpack --progress --colors --watch --mode development",
     "start": "npx webpack-dev-server --open --mode development --env.RECORDER_URL=ws://localhost:8085"
   },
