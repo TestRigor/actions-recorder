@@ -1,3 +1,4 @@
+import 'session-management-js';
 import Recorder from './recorder/recorder.js';
 
 function init(options) {
