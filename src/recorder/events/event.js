@@ -30,7 +30,7 @@ export default class Event {
   }
 
   isHtmlOrBody(element) {
-    return element.nodeName !== 'HTML' && element.nodeName !== 'BODY';
+    return element.nodeName === 'HTML' || element.nodeName === 'BODY';
   }
 
   getXPathForElement(element) {

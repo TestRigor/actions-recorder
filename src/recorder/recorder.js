@@ -9,7 +9,7 @@ export default class Recorder {
     this.eventListener = new EventListener();
     this.token = options.token;
     // eslint-disable-next-line no-undef
-    this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${this.token}&clientId=${Session.getSession()}`);
+    this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${this.token}&clientId=${Session.getSession() || ''}`);
     this.webSocket.pipe(
       retryWhen(errors =>
         errors.pipe(
