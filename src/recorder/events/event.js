@@ -25,6 +25,7 @@ export default class Event {
     this.disabled = element.disabled;
     this.hidden = element.hidden;
     this.tagName = element.tagName;
+    this.elementType = element.type;
     this.xpath = this.getXPathForElement(element);
   }
 
