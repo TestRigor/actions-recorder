@@ -19,7 +19,7 @@ jobs:
         from: lib/actions-recorder.min.js
         to: 's3://${BUCKET}/actions-recorder.min.js'
         arguments: |
-          --acl public-read
+          --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate --acl public-read
 workflows:
   version: 2
   publish:
