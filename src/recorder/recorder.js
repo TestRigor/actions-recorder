@@ -1,6 +1,6 @@
 import {webSocket} from 'rxjs/webSocket';
 import {EventListener} from './events';
-import {retryWhen, tap, delay} from 'rxjs/operators';
+import {retryWhen, delay} from 'rxjs/operators';
 
 const Session = window['Session'] || {getSession: function () {}};
 
@@ -13,9 +13,6 @@ export default class Recorder {
     this.webSocket.pipe(
       retryWhen(errors =>
         errors.pipe(
-          tap(err => {
-            console.error('Got error', err);
-          }),
           delay(5000)
         )
       )
