@@ -2,12 +2,14 @@ import {webSocket} from 'rxjs/webSocket';
 import {EventListener} from './events';
 import {retryWhen, tap, delay} from 'rxjs/operators';
 
+const Session = window['Session'] || {getSession: function () {}};
+
 export default class Recorder {
   constructor(options) {
     this.eventListener = new EventListener();
     this.token = options.token;
     // eslint-disable-next-line no-undef
-    this.webSocket = webSocket(RECORDER_URL + '/events?API_TOKEN=' + this.token);
+    this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${this.token}&clientId=${Session.getSession()}`);
     this.webSocket.pipe(
       retryWhen(errors =>
         errors.pipe(
