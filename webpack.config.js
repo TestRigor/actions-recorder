@@ -1,8 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
 
-let recorderUrl = '';
-
 const config = {
   entry: __dirname + '/src/index.js',
   output: {
@@ -50,7 +48,8 @@ module.exports = (env, argv) => {
     config.devtool = 'source-map';
     config.output.filename = 'actions-recorder.js';
     config.devServer = {
-      contentBase: config.output.path
+      contentBase: config.output.path,
+      port: 8011
     };
   }
 
