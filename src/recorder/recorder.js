@@ -6,8 +6,10 @@ const Session = window['Session'] || {getSession: function () {}};
 
 export default class Recorder {
   constructor(options) {
-    this.eventListener = new EventListener();
-    this.token = options.token;
+    const config = (options || {});
+
+    this.eventListener = new EventListener(config);
+    this.token = config.token;
     if (Recorder.shouldConnect()) {
       // eslint-disable-next-line no-undef,max-len
       this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${this.token}&clientId=${Session.getSession() || ''}`);
