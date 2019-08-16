@@ -2,23 +2,27 @@ import eventTypes from './event-types';
 import Event from './event';
 
 export default class ValueEntered extends Event {
-  constructor(event) {
+  constructor(event, saveAllData) {
     super(event);
     const element = event['srcElement'];
 
     if (!element) {
       return;
     }
-    const isNotEmailAddress = (element.value.indexOf('@') === -1);
+    this.placeholder = element.placeholder;
+    this.name = element.name;
 
-    if (element.type !== 'password' && isNotEmailAddress) {
+    if (this.resourceId) {
+      let query = document.querySelector(`[for=${this.resourceId}]`);
+
+      if (query) {
+        this.label = query.innerText;
+      }
+    }
+
+    if (saveAllData) {
       this.value = element.value;
     }
-
-    if (!isNotEmailAddress && element.type === 'text') {
-      this.elementType = 'email';
-    }
-
     this.type = eventTypes.INPUT;
   }
 

@@ -27,6 +27,11 @@ export default class Event {
     this.tagName = element.tagName;
     this.elementType = element.type;
     this.xpath = this.getXPathForElement(element);
+    this.hint = element.hint;
+    this.windowScrollY = window.scrollY;
+    this.windowScrollX = window.scrollX;
+    this.windowHeight = window.innerHeight;
+    this.windowWidth = window.innerWidth;
   }
 
   isHtmlOrBody(element) {
