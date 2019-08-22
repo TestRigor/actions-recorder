@@ -1,18 +1,21 @@
-import {webSocket} from 'rxjs/webSocket';
-import {EventListener} from './events';
-import {retryWhen, delay} from 'rxjs/operators';
+import { webSocket } from 'rxjs/webSocket';
+import { EventListener } from './events';
+import { retryWhen, delay } from 'rxjs/operators';
+import { version } from '../../package.json';
 
 const Session = window['Session'] || {getSession: function () {}};
 
 export default class Recorder {
   constructor(options) {
-    const config = (options || {});
+    this.config = (options || {});
+    this.startRecorder(this.config);
+  }
 
+  startRecorder(config) {
     this.eventListener = new EventListener(config);
-    this.token = config.token;
     if (Recorder.shouldConnect()) {
       // eslint-disable-next-line no-undef,max-len
-      this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${this.token}&clientId=${Session.getSession() || ''}`);
+      this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${config.token}&clientId=${Session.getSession() || ''}`);
       this.webSocket.pipe(
         retryWhen(errors =>
           errors.pipe(
@@ -22,7 +25,6 @@ export default class Recorder {
       ).subscribe();
       this.subscribeToEvents();
     }
-
   }
 
   subscribeToEvents() {
@@ -46,5 +48,31 @@ export default class Recorder {
       }
     }
     return true;
+  }
+
+  getVersion() {
+    return version;
+  }
+
+  disconnectAndRestart() {
+    this.webSocket.unsubscribe();
+    Session.recreateSession();
+    this.startRecorder(this.config);
+  }
+
+  startRecording() {
+    this.disconnectAndRestart();
+    document.dispatchEvent(new CustomEvent('recordingStarted', {
+      detail: Session.getSession()
+    }));
+  }
+
+  stopRecording() {
+    const currentSession = Session.getSession();
+
+    this.disconnectAndRestart();
+    document.dispatchEvent(new CustomEvent('recordingStopped', {
+      detail: currentSession
+    }));
   }
 }
