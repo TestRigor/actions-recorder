@@ -2,7 +2,15 @@ import 'session-management-js';
 import Recorder from './recorder/recorder.js';
 
 function init(options) {
-  return new Recorder(options);
+  window['Recorder'] = new Recorder(options);
+
+  return window.Recorder;
 }
 
-export {init};
+document.addEventListener('recorderLibraryVersionRequested', function (event) {
+  document.dispatchEvent(new CustomEvent('recorderLibraryVersionProvisioned', {
+    detail: window.Recorder.getVersion()
+  }));
+});
+
+export { init };
