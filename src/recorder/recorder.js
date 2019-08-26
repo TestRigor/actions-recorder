@@ -3,11 +3,14 @@ import { EventListener } from './events';
 import { retryWhen, delay } from 'rxjs/operators';
 import { version } from '../../package.json';
 
+const DEFAULT_PRIORITY = -100;
+const PLUGIN_PRIORITY = -150;
 const Session = window['Session'] || {getSession: function () {}};
 
 export default class Recorder {
   constructor(options) {
     this.config = (options || {});
+    this.config.priority = DEFAULT_PRIORITY;
     this.startRecorder(this.config);
   }
 
@@ -15,7 +18,7 @@ export default class Recorder {
     this.eventListener = new EventListener(config);
     if (Recorder.shouldConnect()) {
       // eslint-disable-next-line no-undef,max-len
-      this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${config.token}&clientId=${Session.getSession() || ''}`);
+      this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${config.token}&clientId=${Session.getSession() || ''}&priority=${config.priority}`);
       this.webSocket.pipe(
         retryWhen(errors =>
           errors.pipe(
@@ -61,6 +64,7 @@ export default class Recorder {
   }
 
   startRecording() {
+    this.config.priority = PLUGIN_PRIORITY;
     this.disconnectAndRestart();
     document.dispatchEvent(new CustomEvent('recordingStarted', {
       detail: Session.getSession()
@@ -70,6 +74,7 @@ export default class Recorder {
   stopRecording() {
     const currentSession = Session.getSession();
 
+    this.config.priority = DEFAULT_PRIORITY;
     this.disconnectAndRestart();
     document.dispatchEvent(new CustomEvent('recordingStopped', {
       detail: currentSession
