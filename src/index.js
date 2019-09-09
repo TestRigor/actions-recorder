@@ -13,4 +13,8 @@ document.addEventListener('recorderLibraryVersionRequested', function (event) {
   }));
 });
 
+document.addEventListener('restartWithCustomConfigRequested', function (event) {
+  window.Recorder.restartWithConfig(event.detail);
+});
+
 export { init };
