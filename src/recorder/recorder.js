@@ -58,13 +58,20 @@ export default class Recorder {
   }
 
   disconnectAndRestart() {
-    this.webSocket.unsubscribe();
-    Session.recreateSession();
+    this.webSocket.complete();
     this.startRecorder(this.config);
+  }
+
+  recreateSession() {
+    Session.recreateSession();
+    document.dispatchEvent(new CustomEvent('sessionRecreated', {
+      detail: Session.getSession()
+    }));
   }
 
   startRecording() {
     this.config.priority = PLUGIN_PRIORITY;
+    Session.recreateSession();
     this.disconnectAndRestart();
     document.dispatchEvent(new CustomEvent('recordingStarted', {
       detail: Session.getSession()
@@ -75,9 +82,15 @@ export default class Recorder {
     const currentSession = Session.getSession();
 
     this.config.priority = DEFAULT_PRIORITY;
+    Session.recreateSession();
     this.disconnectAndRestart();
     document.dispatchEvent(new CustomEvent('recordingStopped', {
       detail: currentSession
     }));
+  }
+
+  restartWithConfig(config) {
+    this.config = config;
+    this.disconnectAndRestart();
   }
 }
