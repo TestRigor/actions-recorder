@@ -7,9 +7,9 @@ function init(options) {
   return window.Recorder;
 }
 
-document.addEventListener('recorderLibraryVersionRequested', function (event) {
-  document.dispatchEvent(new CustomEvent('recorderLibraryVersionProvisioned', {
-    detail: window.Recorder.getVersion()
+document.addEventListener('recorderLibraryContextRequested', function (event) {
+  document.dispatchEvent(new CustomEvent('recorderLibraryContextProvisioned', {
+    detail: { version: window.Recorder.getVersion(), config: window.Recorder.getConfig() }
   }));
 });
 

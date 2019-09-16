@@ -57,6 +57,10 @@ export default class Recorder {
     return version;
   }
 
+  getConfig() {
+    return this.config;
+  }
+
   disconnectAndRestart() {
     this.webSocket.complete();
     this.startRecorder(this.config);
