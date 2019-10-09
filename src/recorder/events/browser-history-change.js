@@ -1,8 +1,10 @@
 import eventTypes from './event-types';
+import Event from './event';
 
-export default class BrowserHistoryChange {
+export default class BrowserHistoryChange extends Event {
 
-  constructor() {
+  constructor(event) {
+    super(event);
     this.type = eventTypes.BROWSER_HISTORY_CHANGE;
   }
 };

@@ -32,6 +32,7 @@ export default class Event {
     this.windowScrollX = window.scrollX;
     this.windowHeight = window.innerHeight;
     this.windowWidth = window.innerWidth;
+    this.url = location.href;
   }
 
   isHtmlOrBody(element) {
