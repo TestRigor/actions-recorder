@@ -6,7 +6,7 @@ export default class ClickEventHandler {
   constructor() {
     this._events = fromEvent(document, 'click')
       .pipe(
-        throttleTime(1000),
+        throttleTime(200),
         map((event) => new ElementClicked(event))
       );
   }
