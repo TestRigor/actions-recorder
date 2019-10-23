@@ -1,7 +1,8 @@
 import {from} from 'rxjs';
 import { publish, mergeAll} from 'rxjs/operators';
 
-import {ClickEventHandler, InputEventHandler, DragEventHandler, NavigateEventHandler} from './handlers';
+import {ClickEventHandler, InputEventHandler, DragEventHandler,
+  NavigateEventHandler, EnterKeyPressEventHandler} from './handlers';
 
 export default class EventListener {
   constructor(options) {
@@ -9,11 +10,13 @@ export default class EventListener {
     this._inputEventHandler = new InputEventHandler(options);
     this._dragEventHandler = new DragEventHandler();
     this._navigateEventHandler = new NavigateEventHandler();
+    this._enterKeyPressEventHandler = new EnterKeyPressEventHandler();
     this._events = from([
       this._clickEventHandler.events,
       this._inputEventHandler.events,
       this._dragEventHandler.events,
-      this._navigateEventHandler.events
+      this._navigateEventHandler.events,
+      this._enterKeyPressEventHandler.events
     ])
       .pipe(mergeAll(), publish());
     this._events.connect();
