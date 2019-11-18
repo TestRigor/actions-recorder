@@ -8,12 +8,14 @@ export default class Event {
     if (!this.isHtmlOrBody(element)) {
       this.innerText = element.innerText;
     }
+    let rect = element.getBoundingClientRect() || {};
+
+    this.clientHeight = rect.height || element.clientHeight;
+    this.clientWidth = rect.width || element.clientWidth;
+    this.clientTop = rect.top || element.clientTop;
+    this.clientLeft = rect.left || element.clientLeft;
     this.className = element.className;
     this.resourceId = element.id;
-    this.clientHeight = element.clientHeight;
-    this.clientWidth = element.clientWidth;
-    this.clientTop = element.clientTop;
-    this.clientLeft = element.clientLeft;
     this.offsetHeight = element.offsetHeight;
     this.offsetWidth = element.offsetWidth;
     this.offsetLeft = element.offsetLeft;
