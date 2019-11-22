@@ -1,3 +1,5 @@
+import getLabelForElement from '../helpers/label-finder';
+
 export default class Event {
   constructor(event) {
     const element = event['srcElement'];
@@ -8,7 +10,7 @@ export default class Event {
     if (!this.isHtmlOrBody(element)) {
       this.innerText = element.innerText;
     }
-    let rect = element.getBoundingClientRect() || {};
+    let rect = element.getBoundingClientRect ? element.getBoundingClientRect() || {} : {};
 
     this.clientHeight = rect.height || element.clientHeight;
     this.clientWidth = rect.width || element.clientWidth;
@@ -35,6 +37,7 @@ export default class Event {
     this.windowHeight = window.innerHeight;
     this.windowWidth = window.innerWidth;
     this.url = location.href;
+    this.label = getLabelForElement(element);
   }
 
   isHtmlOrBody(element) {
