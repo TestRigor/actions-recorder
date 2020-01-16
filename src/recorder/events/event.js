@@ -1,4 +1,5 @@
 import getLabelForElement from '../helpers/label-finder';
+import { HTML_TAGS } from '../helpers/html-tags';
 
 export default class Event {
   constructor(event) {
@@ -38,6 +39,9 @@ export default class Event {
     this.windowWidth = window.innerWidth;
     this.url = location.href;
     this.label = getLabelForElement(element);
+    if (this.shouldCheckForCustomTag()) {
+      this.customTag = this.getNearestCustomTag(element);
+    }
   }
 
   isHtmlOrBody(element) {
@@ -63,5 +67,28 @@ export default class Event {
       return [''];
     }
     return [...this.segment(element.parentNode), `${element.localName.toLowerCase()}[${this.index(element)}]`];
+  }
+
+  shouldCheckForCustomTag() {
+    return window.angular !== undefined ||
+      window.ng !== undefined ||
+      window.React !== undefined;
+  }
+
+  getNearestCustomTag(element) {
+    let customElement = this.getNearestCustomElement(element);
+
+    return customElement ? customElement.localName : '';
+  }
+
+  getNearestCustomElement(element) {
+    if (element) {
+      return this.isCustomElement(element) ? element : this.getNearestCustomElement(element.parentNode);
+    }
+    return undefined;
+  }
+
+  isCustomElement(element) {
+    return !HTML_TAGS.includes(element.localName);
   }
 };
