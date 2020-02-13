@@ -13,11 +13,13 @@ export default class ValueEntered extends Event {
     this.name = element.name;
 
     if (this.resourceId) {
-      let query = document.querySelector(`[for=${this.resourceId}]`);
+      try {
+        let query = document.querySelector(`[for=${this.resourceId}]`);
 
-      if (query) {
-        this.label = query.innerText;
-      }
+        if (query) {
+          this.label = query.innerText;
+        }
+      } catch (error) {}
     }
 
     if (saveAllData) {
