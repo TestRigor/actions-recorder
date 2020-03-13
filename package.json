@@ -13,23 +13,23 @@
   "main": "lib/actions-recorder.js",
   "license": "ISC",
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
-    "@babel/core": "^7.4.4",
-    "@babel/preset-env": "^7.4.4",
-    "babel-eslint": "^10.0.1",
-    "babel-loader": "^8.0.6",
-    "babel-plugin-add-module-exports": "^1.0.2",
-    "babel-plugin-istanbul": "^5.1.4",
-    "babel-preset-env": "^1.7.0",
-    "babel-register": "^6.26.0",
-    "eslint": "^5.16.0",
-    "eslint-loader": "^2.1.2",
-    "webpack": "^4.32.0",
-    "webpack-cli": "^3.3.2",
-    "webpack-dev-server": "^3.4.1"
+    "@babel/cli": "7.4.4",
+    "@babel/core": "7.4.4",
+    "@babel/preset-env": "7.4.4",
+    "babel-eslint": "10.0.1",
+    "babel-loader": "8.0.6",
+    "babel-plugin-add-module-exports": "1.0.2",
+    "babel-plugin-istanbul": "5.1.4",
+    "babel-preset-env": "1.7.0",
+    "babel-register": "6.26.0",
+    "eslint": "5.16.0",
+    "eslint-loader": "2.1.2",
+    "webpack": "4.32.0",
+    "webpack-cli": "3.3.11",
+    "webpack-dev-server": "3.4.1"
   },
   "dependencies": {
-    "rxjs": "^6.5.2",
+    "rxjs": "6.5.2",
     "session-management-js": "^0.0.3"
   }
 }
