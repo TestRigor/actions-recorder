@@ -7,12 +7,6 @@ function init(options) {
   return window.Recorder;
 }
 
-document.addEventListener('recorderLibraryContextRequested', function (event) {
-  document.dispatchEvent(new CustomEvent('recorderLibraryContextProvisioned', {
-    detail: { version: window.Recorder.getVersion(), config: window.Recorder.getConfig() }
-  }));
-});
-
 document.addEventListener('restartWithCustomConfigRequested', function (event) {
   window.Recorder.restartWithConfig(event.detail);
 });

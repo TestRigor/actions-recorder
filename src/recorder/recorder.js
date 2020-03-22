@@ -1,11 +1,10 @@
 import { webSocket } from 'rxjs/webSocket';
 import { EventListener } from './events';
 import { retryWhen, delay } from 'rxjs/operators';
-import { version } from '../../package.json';
 
 const DEFAULT_PRIORITY = -100;
-const PLUGIN_PRIORITY = -150;
 const Session = window['Session'] || {getSession: function () {}};
+const pluginSessionId = 'tRPluginSession';
 
 export default class Recorder {
   constructor(options) {
@@ -16,7 +15,7 @@ export default class Recorder {
 
   startRecorder(config) {
     this.eventListener = new EventListener(config);
-    if (Recorder.shouldConnect()) {
+    if (Recorder.shouldConnectWs(config)) {
       // eslint-disable-next-line no-undef,max-len
       this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${config.token}&clientId=${Session.getSession() || ''}&priority=${config.priority}`);
       this.webSocket.pipe(
@@ -27,6 +26,8 @@ export default class Recorder {
         )
       ).subscribe();
       this.subscribeToEvents();
+    } else {
+      this.subscribeToEventsPlugin();
     }
   }
 
@@ -38,7 +39,23 @@ export default class Recorder {
       });
   }
 
-  static shouldConnect() {
+  subscribeToEventsPlugin() {
+    this.eventListener
+      .events()
+      .subscribe((event) => {
+        const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
+
+        event.occurredAt = new Date();
+        events.push(event);
+
+        localStorage.setItem(pluginSessionId, JSON.stringify(events));
+      });
+  }
+
+  static shouldConnectWs(config) {
+    if (!config.token) {
+      return false;
+    }
     let cookies = document.cookie.split(';');
 
     let length = cookies.length;
@@ -53,48 +70,21 @@ export default class Recorder {
     return true;
   }
 
-  getVersion() {
-    return version;
-  }
-
-  getConfig() {
-    return this.config;
-  }
-
-  disconnectAndRestart() {
-    this.webSocket.complete();
-    this.startRecorder(this.config);
-  }
-
-  recreateSession() {
-    Session.recreateSession();
-    document.dispatchEvent(new CustomEvent('sessionRecreated', {
-      detail: Session.getSession()
-    }));
-  }
-
-  startRecording() {
-    this.config.priority = PLUGIN_PRIORITY;
-    Session.recreateSession();
-    this.disconnectAndRestart();
-    document.dispatchEvent(new CustomEvent('recordingStarted', {
-      detail: Session.getSession()
-    }));
-  }
-
   stopRecording() {
-    const currentSession = Session.getSession();
+    const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
 
-    this.config.priority = DEFAULT_PRIORITY;
-    Session.recreateSession();
-    this.disconnectAndRestart();
+    localStorage.removeItem(pluginSessionId);
+
     document.dispatchEvent(new CustomEvent('recordingStopped', {
-      detail: currentSession
+      detail: events
     }));
   }
 
   restartWithConfig(config) {
     this.config = config;
-    this.disconnectAndRestart();
+    if (this.webSocket) {
+      this.webSocket.complete();
+    }
+    this.startRecorder(config);
   }
 }
