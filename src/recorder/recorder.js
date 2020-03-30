@@ -1,6 +1,5 @@
-import { webSocket } from 'rxjs/webSocket';
 import { EventListener } from './events';
-import { retryWhen, delay } from 'rxjs/operators';
+import { ajax } from 'rxjs/ajax';
 
 const DEFAULT_PRIORITY = -100;
 const Session = window['Session'] || {getSession: function () {}};
@@ -15,28 +14,32 @@ export default class Recorder {
 
   startRecorder(config) {
     this.eventListener = new EventListener(config);
-    if (Recorder.shouldConnectWs(config)) {
+    if (Recorder.shouldDispatchEvents(config)) {
       // eslint-disable-next-line no-undef,max-len
-      this.webSocket = webSocket(`${RECORDER_URL}/events?API_TOKEN=${config.token}&clientId=${Session.getSession() || ''}&priority=${config.priority}`);
-      this.webSocket.pipe(
-        retryWhen(errors =>
-          errors.pipe(
-            delay(5000)
-          )
-        )
-      ).subscribe();
-      this.subscribeToEvents();
+      this.url = `${RECORDER_URL}/v1/events/${Session.getSession() || ''}`;
+      this.eventListener
+        .events()
+        .subscribe((event) => {
+          this.postNewEvent(event);
+        });
     } else {
       this.subscribeToEventsPlugin();
     }
   }
 
-  subscribeToEvents() {
-    this.eventListener
-      .events()
-      .subscribe((event) => {
-        this.webSocket.next(event);
-      });
+  postNewEvent(event) {
+    ajax({
+      url: this.url,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'API_TOKEN': this.config.token
+      },
+      body: {
+        priority: this.config.priority,
+        event: event
+      }
+    }).subscribe(() => {}, () => {});
   }
 
   subscribeToEventsPlugin() {
@@ -52,7 +55,7 @@ export default class Recorder {
       });
   }
 
-  static shouldConnectWs(config) {
+  static shouldDispatchEvents(config) {
     if (!config.token) {
       return false;
     }
@@ -82,9 +85,6 @@ export default class Recorder {
 
   restartWithConfig(config) {
     this.config = config;
-    if (this.webSocket) {
-      this.webSocket.complete();
-    }
     this.startRecorder(config);
   }
 }

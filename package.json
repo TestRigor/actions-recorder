@@ -1,12 +1,12 @@
 {
   "name": "actions-recorder",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "",
   "private": true,
   "scripts": {
-    "build": "npx webpack --config webpack.config.js --mode=production --env.RECORDER_URL='wss://recorder.testrigor.com'",
+    "build": "npx webpack --config webpack.config.js --mode=production --env.RECORDER_URL='https://recorder.testrigor.com'",
     "dev": "npx webpack --progress --colors --watch --mode development",
-    "start": "npx webpack-dev-server --open --mode development --env.RECORDER_URL=ws://localhost:8085"
+    "start": "npx webpack-dev-server --open --mode development --env.RECORDER_URL=http://localhost:8085"
   },
   "keywords": [],
   "author": "",
