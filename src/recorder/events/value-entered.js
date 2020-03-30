@@ -22,7 +22,7 @@ export default class ValueEntered extends Event {
       } catch (error) {}
     }
 
-    if (saveAllData) {
+    if (saveAllData === 'true' || saveAllData === true) {
       this.value = element.value;
     }
     this.type = eventTypes.INPUT;
