@@ -33,7 +33,7 @@ export default class Recorder {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'API_TOKEN': this.config.token
+        'Api-Token': this.config.token
       },
       body: {
         priority: this.config.priority,
