@@ -17,7 +17,7 @@ export default class Event {
     this.clientWidth = rect.width || element.clientWidth;
     this.clientTop = rect.top || element.clientTop;
     this.clientLeft = rect.left || element.clientLeft;
-    this.className = element.className;
+    this.className = (typeof element.className === 'string') ? element.className : '';
     this.resourceId = element.id;
     this.offsetHeight = element.offsetHeight;
     this.offsetWidth = element.offsetWidth;
