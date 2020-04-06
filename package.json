@@ -1,6 +1,6 @@
 {
   "name": "actions-recorder",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "",
   "private": true,
   "scripts": {
@@ -30,6 +30,6 @@
   },
   "dependencies": {
     "rxjs": "6.5.2",
-    "session-management-js": "^0.0.3"
+    "session-management-js": "^0.0.6"
   }
 }
