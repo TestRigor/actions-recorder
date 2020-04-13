@@ -4,13 +4,13 @@ import {map} from 'rxjs/operators';
 import ElementDragged from '../element-dragged';
 
 export default class DragEventHandler {
-  constructor() {
+  constructor(options) {
     this._events = zip(
       fromEvent(document, 'dragstart'),
       fromEvent(document, 'drop')
     )
       .pipe(map(([from, to]) => {
-        return new ElementDragged(from, to);
+        return new ElementDragged(from, to, options);
       }));
   }
 

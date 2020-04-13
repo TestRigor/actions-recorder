@@ -3,8 +3,8 @@ import Event from './event';
 
 export default class ElementClicked extends Event {
 
-  constructor(event) {
-    super(event);
+  constructor(event, options) {
+    super(event, options);
 
     const element = event['srcElement'];
 

@@ -9,3 +9,9 @@ module.exports.HTML_TAGS = ['a', 'abbr', 'acronym', 'address', 'applet', 'area',
   'rp', 'rt', 'ruby', 's', 'samp', 'script', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span',
   'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot',
   'th', 'thead', 'time', 'title', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr', 'xmp'];
+
+module.exports.INLINE_TAGS = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd',
+  'strong', 'samp', 'time', 'var', 'a', 'bdo', 'br', 'img', 'svg', 'map', 'object', 'q', 'script', 'span', 'sub', 'sup',
+  'button', 'input', 'label', 'select', 'textarea'];
+
+module.exports.CONSIDER_INNER_TEXT_TAGS = ['li', 'mat-slide-toggle'];

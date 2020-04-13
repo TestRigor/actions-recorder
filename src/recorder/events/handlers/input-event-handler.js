@@ -8,7 +8,7 @@ export default class InputEventHandler {
     this.saveAllData = options.saveAllData;
     this._events = fromEvent(document, 'change')
       .pipe(
-        map((event) => new ValueEntered(event, this.saveAllData))
+        map((event) => new ValueEntered(event, this.saveAllData, options))
       );
   }
 
