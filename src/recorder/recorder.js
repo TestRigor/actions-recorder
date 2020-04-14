@@ -46,12 +46,18 @@ export default class Recorder {
     this.eventListener
       .events()
       .subscribe((event) => {
+        // Left for backward compability. Init
         const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
 
         event.occurredAt = new Date();
         events.push(event);
 
         localStorage.setItem(pluginSessionId, JSON.stringify(events));
+        // Left for backward compability. End
+
+        document.dispatchEvent(new CustomEvent('newEventRecorded', {
+          detail: event
+        }));
       });
   }
 
@@ -73,6 +79,7 @@ export default class Recorder {
     return true;
   }
 
+  // Left for backward compatibility
   stopRecording() {
     const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
 
