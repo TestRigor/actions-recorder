@@ -7,6 +7,7 @@ function init(options) {
   return window.Recorder;
 }
 
+// Left for backward compatibility
 document.addEventListener('restartWithCustomConfigRequested', function (event) {
   window.Recorder.restartWithConfig(event.detail);
 });
