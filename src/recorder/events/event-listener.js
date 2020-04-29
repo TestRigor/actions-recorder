@@ -5,12 +5,25 @@ import {ClickEventHandler, InputEventHandler, DragEventHandler,
   NavigateEventHandler, EnterKeyPressEventHandler} from './handlers';
 
 export default class EventListener {
-  constructor(options) {
-    this._clickEventHandler = new ClickEventHandler(options);
-    this._inputEventHandler = new InputEventHandler(options);
-    this._dragEventHandler = new DragEventHandler(options);
-    this._navigateEventHandler = new NavigateEventHandler();
-    this._enterKeyPressEventHandler = new EnterKeyPressEventHandler(options);
+  constructor(options, dispatchEvents) {
+    let documents = [document],
+      windows = [window];
+
+    if (dispatchEvents) {
+      let iframes = document.getElementsByTagName('iframe');
+
+      for (let i = 0; i < iframes.length; i++) {
+        if (iframes[i].contentDocument) {
+          documents.push(iframes[i].contentDocument);
+          windows.push(iframes[i].contentWindow);
+        }
+      }
+    }
+    this._clickEventHandler = new ClickEventHandler(documents, options);
+    this._inputEventHandler = new InputEventHandler(documents, options);
+    this._dragEventHandler = new DragEventHandler(documents, options);
+    this._navigateEventHandler = new NavigateEventHandler(windows);
+    this._enterKeyPressEventHandler = new EnterKeyPressEventHandler(documents, options);
     this._events = from([
       this._clickEventHandler.events,
       this._inputEventHandler.events,

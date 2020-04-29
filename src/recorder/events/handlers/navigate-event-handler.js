@@ -3,8 +3,8 @@ import {map} from 'rxjs/operators';
 import BrowserHistoryChange from '../browser-history-change';
 
 export default class NavigateEventHandler {
-  constructor() {
-    this._events = fromEvent(window, 'popstate')
+  constructor(sources) {
+    this._events = fromEvent(sources, 'popstate')
       .pipe(
         map((event) => {
           return new BrowserHistoryChange(event);

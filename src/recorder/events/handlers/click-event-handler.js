@@ -3,8 +3,8 @@ import {map, throttleTime} from 'rxjs/operators';
 import ElementClicked from '../element-clicked';
 
 export default class ClickEventHandler {
-  constructor(options) {
-    this._events = fromEvent(document, 'click')
+  constructor(sources, options) {
+    this._events = fromEvent(sources, 'click')
       .pipe(
         throttleTime(200),
         map((event) => new ElementClicked(event, options))
