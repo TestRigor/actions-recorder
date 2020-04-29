@@ -13,8 +13,10 @@ export default class Recorder {
   }
 
   startRecorder(config) {
-    this.eventListener = new EventListener(config);
-    if (Recorder.shouldDispatchEvents(config)) {
+    let dispatchEvents = Recorder.shouldDispatchEvents(config);
+
+    this.eventListener = new EventListener(config, dispatchEvents);
+    if (dispatchEvents) {
       // eslint-disable-next-line no-undef,max-len
       this.url = `${RECORDER_URL}/v1/events/${Session.getSession() || ''}`;
       this.eventListener

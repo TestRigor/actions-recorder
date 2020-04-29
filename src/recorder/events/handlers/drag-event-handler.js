@@ -4,10 +4,10 @@ import {map} from 'rxjs/operators';
 import ElementDragged from '../element-dragged';
 
 export default class DragEventHandler {
-  constructor(options) {
+  constructor(sources, options) {
     this._events = zip(
-      fromEvent(document, 'dragstart'),
-      fromEvent(document, 'drop')
+      fromEvent(sources, 'dragstart'),
+      fromEvent(sources, 'drop')
     )
       .pipe(map(([from, to]) => {
         return new ElementDragged(from, to, options);

@@ -5,8 +5,8 @@ import EnterKeyPressed from '../enter-key-pressed';
 const ENTER_KEY_CODE = 13;
 
 export default class EnterKeyPressEventHandler {
-  constructor(options) {
-    this._events = fromEvent(document, 'keypress')
+  constructor(sources, options) {
+    this._events = fromEvent(sources, 'keypress')
       .pipe(
         filter((event) => event.key === ENTER_KEY_CODE || event.which === ENTER_KEY_CODE),
         throttleTime(500),

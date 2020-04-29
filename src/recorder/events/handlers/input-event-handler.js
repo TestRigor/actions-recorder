@@ -4,9 +4,9 @@ import {map} from 'rxjs/operators';
 import ValueEntered from '../value-entered';
 
 export default class InputEventHandler {
-  constructor(options) {
+  constructor(sources, options) {
     this.saveAllData = options.saveAllData;
-    this._events = fromEvent(document, 'change')
+    this._events = fromEvent(sources, 'change')
       .pipe(
         map((event) => new ValueEntered(event, this.saveAllData, options))
       );
