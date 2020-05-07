@@ -1,4 +1,4 @@
-import { contains, doSidesIntersect, distanceBetweenLeftCenterPoints } from './rect-helper';
+import { contains, doSidesIntersect, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
 
 const labelTags = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'bdo', 'map',
   'q', 'span', 'sub', 'sup', 'label', 'text'];
@@ -18,21 +18,33 @@ function possiblyRelated(element, label) {
   return doSidesIntersect(elementRect, labelRect);
 }
 
-export default function getLabelForElement(element) {
+function getRelatedLabel(element) {
+  let labelElement = document.querySelector(`label[for="${element.id}"]`);
+
+  return labelElement ? labelElement.innerText : '';
+}
+
+function getLabelForElement(element) {
   try {
-    if (element.tagName && (element.tagName.toLowerCase() !== 'input' ||
-                            element.tagName.toLowerCase() !== 'select' ||
+    if (element.tagName && (element.tagName.toLowerCase() !== 'input' &&
+                            element.tagName.toLowerCase() !== 'select' &&
                             element.tagName.toLowerCase() !== 'textarea')) {
       return '';
     }
 
-    let labelElement = document.querySelector(`label[for="${element.id}"]`);
+    let relatedLabel = getRelatedLabel(element);
 
-    if (labelElement == null && element.getBoundingClientRect) {
+    if (relatedLabel) {
+      return relatedLabel;
+    }
+
+    let labelElement;
+
+    if (element.getBoundingClientRect) {
       const labelElements = document.querySelectorAll(labelTags.join() + ',.label');
 
       let possibleLabels = Array.from(labelElements)
-        .filter(label => label.getBoundingClientRect && possiblyRelated(element, label));
+        .filter(label => isVisible(label) && possiblyRelated(element, label));
 
       let shortestDistance = null;
 
@@ -50,3 +62,5 @@ export default function getLabelForElement(element) {
     return '';
   }
 }
+
+export { getRelatedLabel, getLabelForElement };
