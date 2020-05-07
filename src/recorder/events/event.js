@@ -1,4 +1,4 @@
-import getLabelForElement from '../helpers/label-finder';
+import { getRelatedLabel, getLabelForElement } from '../helpers/label-finder';
 import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS } from '../helpers/html-tags';
 import { isVisible } from '../helpers/rect-helper';
 
@@ -43,13 +43,16 @@ export default class Event {
     if (this.shouldCheckForCustomTag()) {
       this.customTag = this.getNearestCustomTag(element);
     }
-    if (this.shouldCalculateContext(options)) {
-      try {
-        this.setContext(this, element);
-      } catch (error) {
-        this.index = -1;
-      }
+
+    let identifyingData = this.getIdentifier(element, false, this.shouldCalculateContext(options));
+
+    if (!identifyingData.identifier) {
+      identifyingData = this.getIdentifier(element, true, this.shouldCalculateContext(options));
     }
+
+    this.identifier = identifyingData.identifier;
+    this.index = identifyingData.index;
+    this.contextElement = identifyingData.contextElement;
   }
 
   isHtmlOrBody(element) {
@@ -104,18 +107,32 @@ export default class Event {
     return !HTML_TAGS.includes(element.localName);
   }
 
-  getDescriptor(srcElement, useClassAndId) {
+  getIdentifier(element, useClass, calculateContext) {
+    let identifier = this.getDescriptor(element, useClass),
+      identifiedElement = element;
+
+    if (!identifier) {
+      identifiedElement = this.getIdentifiableParent(element, '', 10, useClass);
+      identifier = this.getDescriptor(identifiedElement, useClass);
+    }
+    let context = calculateContext ? this.getContext(identifiedElement, identifier) : { index: -1, contextElement: '' };
+
+    context.identifier = identifier;
+    return context;
+  }
+
+  getDescriptor(srcElement, useClass) {
     if (!srcElement) {
       return '';
     }
 
-    let label = getLabelForElement(srcElement);
+    let relatedLabel = getRelatedLabel(srcElement);
 
-    if (label) {
-      return label;
+    if (relatedLabel) {
+      return relatedLabel;
     }
-    if (!this.isHtmlOrBody(srcElement) && this.considerInnerText(srcElement) && srcElement.innerText) {
-      return srcElement.innerText;
+    if (srcElement.ariaLabel) {
+      return srcElement.ariaLabel;
     }
     if (srcElement.placeholder) {
       return srcElement.placeholder;
@@ -123,14 +140,29 @@ export default class Event {
     if (srcElement.name) {
       return srcElement.name;
     }
-    if (useClassAndId) {
-      if (srcElement.resourceId || srcElement.id) {
-        return srcElement.resourceId || srcElement.id;
-      }
-      if (srcElement.className && typeof srcElement.className === 'string' &&
-        this.isClassUnique(srcElement.className)) {
-        return srcElement.className;
-      }
+    if (srcElement.hint) {
+      return srcElement.hint;
+    }
+    if (srcElement.alt) {
+      return srcElement.alt;
+    }
+    if (srcElement.dataTestId) {
+      return srcElement.dataTestId;
+    }
+    if (!this.isHtmlOrBody(srcElement) && this.considerInnerText(srcElement) &&
+      srcElement.innerText && srcElement.innerText.trim()) {
+      return srcElement.innerText.split('\n')[0];
+    }
+    if (srcElement.resourceId || srcElement.id) {
+      return srcElement.resourceId || srcElement.id;
+    }
+    let label = getLabelForElement(srcElement);
+
+    if (label) {
+      return label;
+    }
+    if (useClass && srcElement.className && typeof srcElement.className === 'string') {
+      return srcElement.className;
     }
     return '';
   }
@@ -148,14 +180,11 @@ export default class Event {
     return element !== other && (element.contains(other) || other.contains(element));
   }
 
-  setContext(element, srcElement) {
-    let elementDescriptor = this.getDescriptor(element, true);
-
-    element.index = -1;
-    if (!elementDescriptor) {
-      return;
+  getContext(srcElement, elementDescriptor) {
+    if (!srcElement || !elementDescriptor) {
+      return { index: -1, contextElement: '' };
     }
-    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 100),
+    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false),
       query = this.elementQuery(elementDescriptor),
       similarNodeArray = [],
       similarNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
@@ -168,18 +197,22 @@ export default class Event {
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
         similarNodeArray.push({
           node: similarNode,
-          parent: this.getIdentifiableParent(similarNode, elementDescriptor, 100)
+          parent: this.getIdentifiableParent(similarNode, elementDescriptor, 25, false)
         });
       }
       similarNode = similarNodes.iterateNext();
     }
 
     if (similarNodeArray.length > 1) {
-      let siblings = similarNodeArray.filter(sibling => sibling.parent === parent);
+      let useContext = parent && this.isUniqueDescriptor(parent),
+        siblings = useContext ? similarNodeArray.filter(sibling => sibling.parent === parent) : similarNodeArray;
 
-      element.index = siblings.length > 1 ? siblings.map(sibling => sibling.node).indexOf(srcElement) : -1;
-      element.contextElement = parent ? this.getDescriptor(parent, false) : '';
+      return {
+        index: siblings.length > 1 ? siblings.map(sibling => sibling.node).indexOf(srcElement) : -1,
+        contextElement: useContext ? this.getDescriptor(parent, false) : ''
+      };
     }
+    return { index: -1, contextElement: '' };
   }
 
   elementQuery(descriptor) {
@@ -190,14 +223,28 @@ export default class Event {
       queryableAttrs.map(attr => `//*[@${attr}="${descriptor}"]`).join(' | ');
   }
 
-  getIdentifiableParent(srcElement, childIdentifier, maxDepth) {
+  getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass) {
     let parent = srcElement.parentNode,
       keepGoing = parent && maxDepth > 0,
-      isDescriptiveParent = parent && this.getDescriptor(parent, false) &&
-        this.getDescriptor(parent, false) !== childIdentifier;
+      isDescriptiveParent = parent && this.getDescriptor(parent, useClass) &&
+        this.getDescriptor(parent, useClass) !== childIdentifier;
 
     return isDescriptiveParent ? parent :
-      (keepGoing ? this.getIdentifiableParent(parent, childIdentifier, --maxDepth) : null);
+      (keepGoing ? this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass) : null);
+  }
+
+  isUniqueDescriptor(element, useClass) {
+    let descriptor = this.getDescriptor(element, useClass),
+      similarNodes = document.evaluate(this.elementQuery(descriptor), document, null, XPathResult.ANY_TYPE, null),
+      currentNode = similarNodes.iterateNext();
+
+    while (currentNode) {
+      if (element !== currentNode && !this.isContainedByOrContains(element, currentNode) && isVisible(currentNode)) {
+        return false;
+      }
+      currentNode = similarNodes.iterateNext();
+    }
+    return true;
   }
 
 };
