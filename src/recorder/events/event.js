@@ -131,14 +131,18 @@ export default class Event {
     if (relatedLabel) {
       return relatedLabel;
     }
-    if (srcElement.ariaLabel) {
-      return srcElement.ariaLabel;
-    }
     if (srcElement.placeholder) {
       return srcElement.placeholder;
     }
     if (srcElement.name) {
       return srcElement.name;
+    }
+    if (!this.isHtmlOrBody(srcElement) && this.considerInnerText(srcElement) &&
+      srcElement.innerText && srcElement.innerText.trim()) {
+      return srcElement.innerText.trim().split('\n')[0];
+    }
+    if (srcElement.ariaLabel) {
+      return srcElement.ariaLabel;
     }
     if (srcElement.hint) {
       return srcElement.hint;
@@ -148,10 +152,6 @@ export default class Event {
     }
     if (srcElement.dataTestId) {
       return srcElement.dataTestId;
-    }
-    if (!this.isHtmlOrBody(srcElement) && this.considerInnerText(srcElement) &&
-      srcElement.innerText && srcElement.innerText.trim()) {
-      return srcElement.innerText.split('\n')[0];
     }
     if (srcElement.resourceId || srcElement.id) {
       return srcElement.resourceId || srcElement.id;
