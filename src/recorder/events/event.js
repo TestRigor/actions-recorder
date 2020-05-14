@@ -139,7 +139,7 @@ export default class Event {
     }
     if (!this.isHtmlOrBody(srcElement) && this.considerInnerText(srcElement) &&
       srcElement.innerText && srcElement.innerText.trim()) {
-      return srcElement.innerText.trim().split('\n')[0];
+      return srcElement.innerText.trim();
     }
     if (srcElement.ariaLabel) {
       return srcElement.ariaLabel;
