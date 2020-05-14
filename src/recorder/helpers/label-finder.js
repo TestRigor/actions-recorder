@@ -18,7 +18,17 @@ function possiblyRelated(element, label) {
   return doSidesIntersect(elementRect, labelRect);
 }
 
+function isInput(element) {
+  return element.tagName && (element.tagName.toLowerCase() === 'input' ||
+    element.tagName.toLowerCase() === 'select' ||
+    element.tagName.toLowerCase() === 'textarea');
+}
+
 function getRelatedLabel(element) {
+  if (!isInput(element) || !element.id) {
+    return '';
+  }
+
   let labelElement = document.querySelector(`label[for="${element.id}"]`);
 
   return labelElement ? labelElement.innerText : '';
@@ -26,9 +36,7 @@ function getRelatedLabel(element) {
 
 function getLabelForElement(element) {
   try {
-    if (element.tagName && (element.tagName.toLowerCase() !== 'input' &&
-                            element.tagName.toLowerCase() !== 'select' &&
-                            element.tagName.toLowerCase() !== 'textarea')) {
+    if (!isInput(element)) {
       return '';
     }
 
