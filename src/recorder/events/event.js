@@ -1,5 +1,5 @@
 import { getRelatedLabel, getLabelForElement } from '../helpers/label-finder';
-import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS } from '../helpers/html-tags';
+import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS, isInput, isButtonOrLink } from '../helpers/html-tags';
 import { isVisible } from '../helpers/rect-helper';
 
 export default class Event {
@@ -44,10 +44,12 @@ export default class Event {
       this.customTag = this.getNearestCustomTag(element);
     }
 
-    let identifyingData = this.getIdentifier(element, false, this.shouldCalculateContext(options));
+    let isNotClickOfInput = event.type === 'click' && !isInput(element);
+
+    let identifyingData = this.getIdentifier(element, false, isNotClickOfInput, this.shouldCalculateContext(options));
 
     if (!identifyingData.identifier) {
-      identifyingData = this.getIdentifier(element, true, this.shouldCalculateContext(options));
+      identifyingData = this.getIdentifier(element, true, isNotClickOfInput, this.shouldCalculateContext(options));
     }
 
     this.identifier = identifyingData.identifier;
@@ -107,12 +109,12 @@ export default class Event {
     return !HTML_TAGS.includes(element.localName);
   }
 
-  getIdentifier(element, useClass, calculateContext) {
+  getIdentifier(element, useClass, isNotClickOfInput, calculateContext) {
     let identifier = this.getDescriptor(element, useClass),
       identifiedElement = element;
 
     if (!identifier) {
-      identifiedElement = this.getIdentifiableParent(element, '', 10, useClass);
+      identifiedElement = this.getIdentifiableParent(element, '', 10, useClass, isNotClickOfInput);
       identifier = this.getDescriptor(identifiedElement, useClass);
     }
     let context = calculateContext ? this.getContext(identifiedElement, identifier) : { index: -1, contextElement: '' };
@@ -139,7 +141,15 @@ export default class Event {
     }
     if (!this.isHtmlOrBody(srcElement) && this.considerInnerText(srcElement) &&
       srcElement.innerText && srcElement.innerText.trim()) {
-      return srcElement.innerText.trim();
+      let textIdentifier = srcElement.innerText
+        .replace('\r\n', '\n')
+        .split('\n')
+        .map(part => part.trim())
+        .filter(part => part).join(' ');
+
+      if (textIdentifier) {
+        return textIdentifier;
+      }
     }
     if (srcElement.ariaLabel) {
       return srcElement.ariaLabel;
@@ -184,7 +194,7 @@ export default class Event {
     if (!srcElement || !elementDescriptor) {
       return { index: -1, contextElement: '' };
     }
-    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false),
+    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false, false),
       query = this.elementQuery(elementDescriptor),
       similarNodeArray = [],
       similarNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
@@ -197,7 +207,7 @@ export default class Event {
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
         similarNodeArray.push({
           node: similarNode,
-          parent: this.getIdentifiableParent(similarNode, elementDescriptor, 25, false)
+          parent: this.getIdentifiableParent(similarNode, elementDescriptor, 25, false, false)
         });
       }
       similarNode = similarNodes.iterateNext();
@@ -223,14 +233,24 @@ export default class Event {
       queryableAttrs.map(attr => `//*[@${attr}="${descriptor}"]`).join(' | ');
   }
 
-  getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass) {
-    let parent = srcElement.parentNode,
-      keepGoing = parent && maxDepth > 0,
-      isDescriptiveParent = parent && this.getDescriptor(parent, useClass) &&
-        this.getDescriptor(parent, useClass) !== childIdentifier;
+  getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton) {
+    let parent = srcElement.parentNode;
 
-    return isDescriptiveParent ? parent :
-      (keepGoing ? this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass) : null);
+    if (!parent) {
+      return null;
+    }
+
+    let isDescriptiveParent = this.getDescriptor(parent, useClass) &&
+      this.getDescriptor(parent, useClass) !== childIdentifier;
+
+    if (isDescriptiveParent) {
+      return parent;
+    }
+
+    let keepGoing = (maxDepth > 0) &&
+      !(stopAtButton && (isButtonOrLink(srcElement) || !this.hasPointerCursor(parent)));
+
+    return keepGoing ? this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass, stopAtButton) : null;
   }
 
   isUniqueDescriptor(element, useClass) {
@@ -247,4 +267,9 @@ export default class Event {
     return true;
   }
 
+  hasPointerCursor(element) {
+    let style = window.getComputedStyle(element);
+
+    return style && style.getPropertyValue('cursor') === 'pointer';
+  }
 };
