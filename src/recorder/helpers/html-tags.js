@@ -15,3 +15,13 @@ module.exports.INLINE_TAGS = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym',
   'button', 'input', 'label', 'select', 'textarea'];
 
 module.exports.CONSIDER_INNER_TEXT_TAGS = ['li', 'mat-slide-toggle'];
+
+module.exports.isInput = function (element) {
+  return element.tagName && (element.tagName.toLowerCase() === 'input' ||
+    element.tagName.toLowerCase() === 'select' ||
+    element.tagName.toLowerCase() === 'textarea');
+};
+
+module.exports.isButtonOrLink = function (element) {
+  return (element.tagName && (element.tagName.toLowerCase() === 'button' || element.tagName.toLowerCase() === 'a'));
+};
