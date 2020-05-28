@@ -14,7 +14,7 @@ module.exports.INLINE_TAGS = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym',
   'strong', 'samp', 'time', 'var', 'a', 'bdo', 'br', 'img', 'svg', 'map', 'object', 'q', 'script', 'span', 'sub', 'sup',
   'button', 'input', 'label', 'select', 'textarea'];
 
-module.exports.CONSIDER_INNER_TEXT_TAGS = ['li', 'mat-slide-toggle'];
+module.exports.CONSIDER_INNER_TEXT_TAGS = ['mat-slide-toggle'];
 
 module.exports.isInput = function (element) {
   return element.tagName && (element.tagName.toLowerCase() === 'input' ||
