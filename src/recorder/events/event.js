@@ -4,7 +4,9 @@ import { isVisible } from '../helpers/rect-helper';
 
 export default class Event {
   constructor(event, options) {
-    const element = event['toElement'] ? event['toElement'] : event['srcElement'];
+    let element = event['toElement'] ? event['toElement'] : event['srcElement'];
+
+    element = this.skipSVGInternals(element);
 
     if (!element) {
       return;
@@ -287,5 +289,9 @@ export default class Event {
     let style = window.getComputedStyle(element);
 
     return style && style.getPropertyValue('cursor') === 'pointer';
+  }
+
+  skipSVGInternals(element) {
+    return element && element.ownerSVGElement ? this.skipSVGInternals(element.ownerSVGElement) : element;
   }
 };
