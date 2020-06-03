@@ -182,9 +182,11 @@ export default class Event {
     if (this.considerInnerText(srcElement)) {
       text = srcElement.innerText;
     } else {
-      text = [].reduce.call(srcElement.childNodes,
-        (a, b) => a + (b.nodeType === 3 ? ' ' + b.textContent.trim() : ''),
-        '');
+      if (srcElement.childNodes) {
+        text = [].reduce.call(srcElement.childNodes,
+          (a, b) => a + (b.nodeType === 3 ? ' ' + b.textContent.trim() : ''),
+          '');
+      }
     }
     if (text) {
       return text.replace('\r\n', '\n')
