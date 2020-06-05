@@ -1,5 +1,6 @@
 import { getRelatedLabel, getLabelForElement } from '../helpers/label-finder';
-import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS, isInput, isButtonOrLink } from '../helpers/html-tags';
+import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
+  isInput, isButtonOrLink, isInputButton } from '../helpers/html-tags';
 import { isVisible } from '../helpers/rect-helper';
 
 export default class Event {
@@ -128,6 +129,9 @@ export default class Event {
   getDescriptor(srcElement, useClass) {
     if (!srcElement) {
       return '';
+    }
+    if (isInputButton(srcElement) && srcElement.value) {
+      return srcElement.value;
     }
 
     let relatedLabel = getRelatedLabel(srcElement);
