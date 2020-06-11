@@ -2,7 +2,7 @@ import {from} from 'rxjs';
 import { publish, mergeAll} from 'rxjs/operators';
 
 import {ClickEventHandler, InputEventHandler, DragEventHandler,
-  NavigateEventHandler, EnterKeyPressEventHandler} from './handlers';
+  NavigateEventHandler, EnterKeyPressEventHandler, HoverEventHandler} from './handlers';
 
 export default class EventListener {
   constructor(options, dispatchEvents) {
@@ -19,18 +19,17 @@ export default class EventListener {
         }
       }
     }
-    this._clickEventHandler = new ClickEventHandler(documents, options);
-    this._inputEventHandler = new InputEventHandler(documents, options);
-    this._dragEventHandler = new DragEventHandler(documents, options);
-    this._navigateEventHandler = new NavigateEventHandler(windows);
-    this._enterKeyPressEventHandler = new EnterKeyPressEventHandler(documents, options);
-    this._events = from([
-      this._clickEventHandler.events,
-      this._inputEventHandler.events,
-      this._dragEventHandler.events,
-      this._navigateEventHandler.events,
-      this._enterKeyPressEventHandler.events
-    ])
+    let eventSources = [(new ClickEventHandler(documents, options)).events,
+      (new InputEventHandler(documents, options)).events,
+      (new DragEventHandler(documents, options)).events,
+      (new NavigateEventHandler(windows)).events,
+      (new EnterKeyPressEventHandler(documents, options)).events];
+
+    if (!dispatchEvents) {
+      eventSources.push((new HoverEventHandler(documents, options)).events);
+    }
+
+    this._events = from(eventSources)
       .pipe(mergeAll(), publish());
     this._events.connect();
   }
