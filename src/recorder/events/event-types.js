@@ -3,7 +3,8 @@ const eventTypes = {
   DRAG_AND_DROP: 'dragAndDrop',
   INPUT: 'input',
   BROWSER_HISTORY_CHANGE: 'browserHistoryChange',
-  ENTER_KEY_PRESS: 'enterKeyPress'
+  ENTER_KEY_PRESS: 'enterKeyPress',
+  HOVER: 'hover'
 };
 
 export default eventTypes;

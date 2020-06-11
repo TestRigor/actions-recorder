@@ -5,7 +5,7 @@ import { isVisible } from '../helpers/rect-helper';
 
 export default class Event {
   constructor(event, options) {
-    let element = event['toElement'] ? event['toElement'] : event['srcElement'];
+    let element = event.target || event.toElement || event.srcElement;
 
     element = this.skipSVGInternals(element);
 
