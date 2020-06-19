@@ -1,5 +1,7 @@
 import { EventListener } from './events';
 import { ajax } from 'rxjs/ajax';
+import { zip, interval } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 const DEFAULT_PRIORITY = -100;
 const Session = window['Session'] || {getSession: function () {}};
@@ -19,8 +21,8 @@ export default class Recorder {
     if (dispatchEvents) {
       // eslint-disable-next-line no-undef,max-len
       this.url = `${RECORDER_URL}/v1/events/${Session.getSession() || ''}`;
-      this.eventListener
-        .events()
+      zip(this.eventListener.events(), interval(50))
+        .pipe(map(([evt]) => evt))
         .subscribe((event) => {
           this.postNewEvent(event);
         });
