@@ -4,7 +4,7 @@ import Event from './event';
 export default class ValueEntered extends Event {
   constructor(event, saveAllData, options) {
     super(event, options);
-    const element = event['srcElement'];
+    const element = event.target;
 
     if (!element) {
       return;
@@ -23,7 +23,7 @@ export default class ValueEntered extends Event {
     }
 
     if (saveAllData === 'true' || saveAllData === true) {
-      this.value = element.value;
+      this.value = element.value || element.innerText;
     }
     this.type = eventTypes.INPUT;
   }
