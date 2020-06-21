@@ -42,22 +42,25 @@ export default class Event {
     this.windowHeight = window.innerHeight;
     this.windowWidth = window.innerWidth;
     this.url = location.href;
-    this.label = getLabelForElement(element);
-    if (this.shouldCheckForCustomTag()) {
-      this.customTag = this.getNearestCustomTag(element);
+
+    if (event.type !== 'popstate') {
+      this.label = getLabelForElement(element);
+      if (this.shouldCheckForCustomTag()) {
+        this.customTag = this.getNearestCustomTag(element);
+      }
+
+      let isNotClickOfInput = event.type === 'click' && !isInput(element);
+
+      let identifyingData = this.getIdentifier(element, false, isNotClickOfInput, this.shouldCalculateContext(options));
+
+      if (!identifyingData.identifier) {
+        identifyingData = this.getIdentifier(element, true, isNotClickOfInput, this.shouldCalculateContext(options));
+      }
+
+      this.identifier = identifyingData.identifier;
+      this.index = identifyingData.index;
+      this.contextElement = identifyingData.contextElement;
     }
-
-    let isNotClickOfInput = event.type === 'click' && !isInput(element);
-
-    let identifyingData = this.getIdentifier(element, false, isNotClickOfInput, this.shouldCalculateContext(options));
-
-    if (!identifyingData.identifier) {
-      identifyingData = this.getIdentifier(element, true, isNotClickOfInput, this.shouldCalculateContext(options));
-    }
-
-    this.identifier = identifyingData.identifier;
-    this.index = identifyingData.index;
-    this.contextElement = identifyingData.contextElement;
   }
 
   isHtmlOrBody(element) {
@@ -117,7 +120,8 @@ export default class Event {
       identifiedElement = element;
 
     if (!identifier) {
-      identifiedElement = this.getIdentifiableParent(element, '', 10, useClass, isNotClickOfInput);
+      identifiedElement = this.getIdentifiableParent(element, '', 10,
+        useClass, isNotClickOfInput, this.hasPointerCursor(element));
       identifier = this.getDescriptor(identifiedElement, useClass);
     }
     let context = calculateContext ? this.getContext(identifiedElement, identifier) : { index: -1, contextElement: '' };
@@ -218,7 +222,7 @@ export default class Event {
     if (!srcElement || !elementDescriptor) {
       return { index: -1, contextElement: '' };
     }
-    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false, false),
+    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false, false, false),
       query = this.elementQuery(elementDescriptor),
       similarNodeArray = [],
       similarNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
@@ -231,7 +235,7 @@ export default class Event {
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
         similarNodeArray.push({
           node: similarNode,
-          parent: this.getIdentifiableParent(similarNode, elementDescriptor, 25, false, false)
+          parent: this.getIdentifiableParent(similarNode, elementDescriptor, 25, false, false, false)
         });
       }
       similarNode = similarNodes.iterateNext();
@@ -257,7 +261,7 @@ export default class Event {
       queryableAttrs.map(attr => `//*[@${attr}="${descriptor}"]`).join(' | ');
   }
 
-  getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton) {
+  getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer) {
     let parent = srcElement.parentNode;
 
     if (!parent) {
@@ -271,10 +275,11 @@ export default class Event {
       return parent;
     }
 
-    let keepGoing = (maxDepth > 0) &&
-      !(stopAtButton && (isButtonOrLink(srcElement) || !this.hasPointerCursor(parent)));
+    let keepGoing = (maxDepth > 0) && !(stopAtButton && isButtonOrLink(srcElement)) &&
+      (!stopAtLastPointer || this.hasPointerCursor(parent));
 
-    return keepGoing ? this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass, stopAtButton) : null;
+    return keepGoing ?
+      this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass, stopAtButton, stopAtLastPointer) : null;
   }
 
   isUniqueDescriptor(element, useClass) {
