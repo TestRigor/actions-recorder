@@ -45,7 +45,7 @@ export default class Recorder {
   }
 
   subscribeToEventsPlugin() {
-    this.eventListener
+    this.eventSubscription = this.eventListener
       .events()
       .subscribe((event) => {
         // Left for backward compability. Init
@@ -93,6 +93,7 @@ export default class Recorder {
   }
 
   restartWithConfig(config) {
+    this.eventSubscription.unsubscribe();
     this.config = config;
     this.startRecorder(config);
   }
