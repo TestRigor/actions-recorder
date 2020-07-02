@@ -149,11 +149,8 @@ export default class Event {
     if (srcElement.name) {
       return srcElement.name;
     }
-
-    let text = this.getText(srcElement);
-
-    if (text) {
-      return text;
+    if (srcElement.innerText) {
+      return srcElement.innerText;
     }
     if (srcElement.ariaLabel) {
       return srcElement.ariaLabel;
@@ -177,30 +174,6 @@ export default class Event {
     }
     if (useClass && srcElement.className && typeof srcElement.className === 'string') {
       return srcElement.className;
-    }
-    return '';
-  }
-
-  getText(srcElement) {
-    if (this.isHtmlOrBody(srcElement)) {
-      return '';
-    }
-    let text = '';
-
-    if (this.considerInnerText(srcElement)) {
-      text = srcElement.innerText;
-    } else {
-      if (srcElement.childNodes) {
-        text = [].reduce.call(srcElement.childNodes,
-          (a, b) => a + (b.nodeType === 3 ? ' ' + b.textContent.trim() : ''),
-          '');
-      }
-    }
-    if (text) {
-      return text.replace('\r\n', '\n')
-        .split('\n')
-        .map(part => part.trim())
-        .filter(part => part).join(' ');
     }
     return '';
   }
