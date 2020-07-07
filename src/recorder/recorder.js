@@ -93,7 +93,9 @@ export default class Recorder {
   }
 
   restartWithConfig(config) {
-    this.eventSubscription.unsubscribe();
+    if (this.eventSubscription && this.eventSubscription.unsubscribe) {
+      this.eventSubscription.unsubscribe();
+    }
     this.config = config;
     this.startRecorder(config);
   }
