@@ -26,7 +26,10 @@ module.exports.isButtonOrLink = function (element) {
   return (element.tagName && (element.tagName.toLowerCase() === 'button' || element.tagName.toLowerCase() === 'a'));
 };
 
-module.exports.isInputButton = function (element) {
+module.exports.isButton = function (element) {
+  if (element.tagName && element.tagName.toLowerCase() === 'button') {
+    return true;
+  }
   return (element.tagName && element.tagName.toLowerCase() === 'input') &&
     (element.type && (element.type === 'submit' || element.type === 'button' || element.type === 'reset'));
 };
