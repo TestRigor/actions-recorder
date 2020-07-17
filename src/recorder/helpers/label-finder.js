@@ -29,15 +29,13 @@ function getRelatedLabel(element) {
     return '';
   }
 
-  let labelElement = document.querySelector(`label[for="${element.id}"]`);
-
-  return labelElement ? labelElement.innerText : '';
+  return document.querySelector(`label[for="${element.id}"]`);
 }
 
 function getLabelForElement(element) {
   try {
     if (!isInput(element)) {
-      return '';
+      return null;
     }
 
     let relatedLabel = getRelatedLabel(element);
@@ -65,9 +63,9 @@ function getLabelForElement(element) {
         }
       }
     }
-    return labelElement != null ? labelElement.innerText : '';
+    return labelElement;
   } catch (error) {
-    return '';
+    return null;
   }
 }
 

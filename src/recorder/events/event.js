@@ -1,6 +1,6 @@
 import { getRelatedLabel, getLabelForElement } from '../helpers/label-finder';
 import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
-  isInput, isButtonOrLink, isInputButton } from '../helpers/html-tags';
+  isInput, isButtonOrLink, isButton } from '../helpers/html-tags';
 import { isVisible } from '../helpers/rect-helper';
 
 export default class Event {
@@ -44,7 +44,12 @@ export default class Event {
     this.url = location.href;
 
     if (event.type !== 'popstate') {
-      this.label = getLabelForElement(element);
+      element.labelElement = getLabelForElement(element);
+
+      if (element.labelElement) {
+        this.label = element.labelElement.innerText;
+      }
+
       if (this.shouldCheckForCustomTag()) {
         this.customTag = this.getNearestCustomTag(element);
       }
@@ -134,14 +139,14 @@ export default class Event {
     if (!srcElement) {
       return '';
     }
-    if (isInputButton(srcElement) && srcElement.value) {
+    if (isButton(srcElement) && srcElement.value) {
       return srcElement.value;
     }
 
     let relatedLabel = getRelatedLabel(srcElement);
 
     if (relatedLabel) {
-      return relatedLabel;
+      return relatedLabel.innerText;
     }
     if (srcElement.placeholder) {
       return srcElement.placeholder;
@@ -167,10 +172,10 @@ export default class Event {
     if (srcElement.resourceId || srcElement.id) {
       return srcElement.resourceId || srcElement.id;
     }
-    let label = getLabelForElement(srcElement);
+    let labelElement = getLabelForElement(srcElement);
 
-    if (label) {
-      return label;
+    if (labelElement) {
+      return labelElement.innerText;
     }
     if (useClass && srcElement.className && typeof srcElement.className === 'string') {
       return srcElement.className;
@@ -205,6 +210,7 @@ export default class Event {
       if (isVisible(similarNode) &&
         this.getDescriptor(similarNode, true) === elementDescriptor &&
         !this.isContainedByOrContains(srcElement, similarNode) &&
+        similarNode !== srcElement.labelElement &&
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
         similarNodeArray.push({
           node: similarNode,
