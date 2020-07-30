@@ -19,7 +19,8 @@ module.exports.CONSIDER_INNER_TEXT_TAGS = ['mat-slide-toggle'];
 module.exports.isInput = function (element) {
   return element.tagName && (element.tagName.toLowerCase() === 'input' ||
     element.tagName.toLowerCase() === 'select' ||
-    element.tagName.toLowerCase() === 'textarea');
+    element.tagName.toLowerCase() === 'textarea' ||
+    element.isContentEditable);
 };
 
 module.exports.isButtonOrLink = function (element) {

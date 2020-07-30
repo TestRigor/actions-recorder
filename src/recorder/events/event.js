@@ -124,7 +124,7 @@ export default class Event {
     let identifier = this.getDescriptor(element, useClass),
       identifiedElement = element;
 
-    if (!identifier) {
+    if (!identifier && !isInput(element)) {
       identifiedElement = this.getIdentifiableParent(element, '', 10,
         useClass, isNotClickOfInput, this.hasPointerCursor(element));
       identifier = this.getDescriptor(identifiedElement, useClass);
@@ -154,7 +154,7 @@ export default class Event {
     if (srcElement.name) {
       return srcElement.name;
     }
-    if (srcElement.innerText) {
+    if (!isInput(srcElement) && srcElement.innerText) {
       return srcElement.innerText;
     }
     if (srcElement.ariaLabel) {
