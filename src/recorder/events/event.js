@@ -121,13 +121,13 @@ export default class Event {
   }
 
   getIdentifier(element, useClass, isNotClickOfInput, calculateContext) {
-    let identifier = this.getDescriptor(element, useClass),
+    let identifier = this.getDescriptor(element, useClass, true),
       identifiedElement = element;
 
     if (!identifier && !isInput(element)) {
       identifiedElement = this.getIdentifiableParent(element, '', 10,
-        useClass, isNotClickOfInput, this.hasPointerCursor(element));
-      identifier = this.getDescriptor(identifiedElement, useClass);
+        useClass, isNotClickOfInput, this.hasPointerCursor(element), true);
+      identifier = this.getDescriptor(identifiedElement, useClass, true);
     }
     let context = calculateContext ? this.getContext(identifiedElement, identifier) : { index: -1, contextElement: '' };
 
@@ -135,7 +135,7 @@ export default class Event {
     return context;
   }
 
-  getDescriptor(srcElement, useClass) {
+  getDescriptor(srcElement, useClass, useInnerText) {
     if (!srcElement) {
       return '';
     }
@@ -154,7 +154,7 @@ export default class Event {
     if (srcElement.name) {
       return srcElement.name;
     }
-    if (!isInput(srcElement) && srcElement.innerText) {
+    if (useInnerText && !isInput(srcElement) && srcElement.innerText) {
       return srcElement.innerText;
     }
     if (srcElement.ariaLabel) {
@@ -200,7 +200,7 @@ export default class Event {
     if (!srcElement || !elementDescriptor) {
       return { index: -1, contextElement: '' };
     }
-    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false, false, false),
+    let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false, false, false, false),
       query = this.elementQuery(elementDescriptor),
       similarNodeArray = [],
       similarNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
@@ -208,7 +208,7 @@ export default class Event {
 
     while (similarNode) {
       if (isVisible(similarNode) &&
-        this.getDescriptor(similarNode, true) === elementDescriptor &&
+        this.getDescriptor(similarNode, true, false) === elementDescriptor &&
         !this.isContainedByOrContains(srcElement, similarNode) &&
         similarNode !== srcElement.labelElement &&
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
@@ -226,7 +226,7 @@ export default class Event {
 
       return {
         index: siblings.length > 1 ? siblings.map(sibling => sibling.node).indexOf(srcElement) : -1,
-        contextElement: useContext ? this.getDescriptor(parent, false) : ''
+        contextElement: useContext ? this.getDescriptor(parent, false, false) : ''
       };
     }
     return { index: -1, contextElement: '' };
@@ -240,15 +240,16 @@ export default class Event {
       queryableAttrs.map(attr => `//*[@${attr}="${descriptor}"]`).join(' | ');
   }
 
-  getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer) {
+  getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer,
+    useInnerText) {
     let parent = srcElement.parentNode;
 
     if (!parent) {
       return null;
     }
 
-    let isDescriptiveParent = this.getDescriptor(parent, useClass) &&
-      this.getDescriptor(parent, useClass) !== childIdentifier;
+    let isDescriptiveParent = this.getDescriptor(parent, useClass, useInnerText) &&
+      this.getDescriptor(parent, useClass, useInnerText) !== childIdentifier;
 
     if (isDescriptiveParent) {
       return parent;
@@ -262,7 +263,7 @@ export default class Event {
   }
 
   isUniqueDescriptor(element, useClass) {
-    let descriptor = this.getDescriptor(element, useClass),
+    let descriptor = this.getDescriptor(element, useClass, false),
       similarNodes = document.evaluate(this.elementQuery(descriptor), document, null, XPathResult.ANY_TYPE, null),
       currentNode = similarNodes.iterateNext();
 
