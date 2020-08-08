@@ -9,20 +9,11 @@ function contains(rect, otherRect) {
     valueInRange(otherRect.y + otherRect.height, rect.y, rect.y + rect.height);
 }
 
-function doSidesIntersect(rect, otherRect) {
-  const horizontalIntersection = (rect.x + rect.width >= otherRect.x) ||
-    (otherRect.x + otherRect.width >= rect.x);
-  const verticalIntersection = rect.y + rect.height >= otherRect.y ||
-    (otherRect.y + otherRect.height >= rect.y);
-
-  return horizontalIntersection || verticalIntersection;
-}
-
 function distanceBetweenLeftCenterPoints(element, otherElement) {
   const rect = element.getBoundingClientRect();
   const otherRect = otherElement.getBoundingClientRect();
-  const rectMidY = rect.bottom + rect.height / 2;
-  const otherRectMidY = otherRect.bottom + otherRect.height / 2;
+  const rectMidY = rect.bottom - rect.height / 2;
+  const otherRectMidY = otherRect.bottom - otherRect.height / 2;
   const distanceSquared = Math.pow(rect.x - otherRect.x, 2) + Math.pow(rectMidY - otherRectMidY, 2);
 
   return Math.sqrt(distanceSquared);
@@ -126,4 +117,4 @@ function isVisible(node) {
   return isAccessible && style.getPropertyValue('display') !== 'none';
 }
 
-export {contains, doSidesIntersect, distanceBetweenLeftCenterPoints, isVisible};
+export {contains, distanceBetweenLeftCenterPoints, isVisible};

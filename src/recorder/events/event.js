@@ -1,4 +1,4 @@
-import { getRelatedLabel, getLabelForElement } from '../helpers/label-finder';
+import { getLabelForElement } from '../helpers/label-finder';
 import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
   isInput, isButtonOrLink, isButton } from '../helpers/html-tags';
 import { isVisible } from '../helpers/rect-helper';
@@ -44,7 +44,7 @@ export default class Event {
     this.url = location.href;
 
     if (event.type !== 'popstate') {
-      element.labelElement = getLabelForElement(element);
+      element.labelElement = getLabelForElement(element).label;
 
       if (element.labelElement) {
         this.label = element.labelElement.innerText;
@@ -143,10 +143,10 @@ export default class Event {
       return srcElement.value;
     }
 
-    let relatedLabel = getRelatedLabel(srcElement);
+    let relatedLabel = getLabelForElement(srcElement);
 
-    if (relatedLabel) {
-      return relatedLabel.innerText;
+    if (relatedLabel.highConfidence) {
+      return relatedLabel.label.innerText;
     }
     if (srcElement.placeholder) {
       return srcElement.placeholder;
@@ -172,10 +172,9 @@ export default class Event {
     if (srcElement.resourceId || srcElement.id) {
       return srcElement.resourceId || srcElement.id;
     }
-    let labelElement = getLabelForElement(srcElement);
 
-    if (labelElement) {
-      return labelElement.innerText;
+    if (relatedLabel.label) {
+      return relatedLabel.label.innerText;
     }
     if (useClass && srcElement.className && typeof srcElement.className === 'string') {
       return srcElement.className;

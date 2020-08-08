@@ -1,4 +1,4 @@
-import { contains, doSidesIntersect, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
+import { contains, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
 
 const labelTags = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'bdo', 'map',
   'q', 'span', 'sub', 'sup', 'label', 'text'];
@@ -11,11 +11,7 @@ function possiblyRelated(element, label) {
     return true;
   }
 
-  if (!(labelRect.x < elementRect.x || labelRect.y < elementRect.y)) {
-    return false;
-  }
-
-  return doSidesIntersect(elementRect, labelRect);
+  return labelRect.left <= (elementRect.left + (elementRect.width * 0.1)) && labelRect.top <= elementRect.bottom;
 }
 
 function isInput(element) {
@@ -32,27 +28,54 @@ function getRelatedLabel(element) {
   return document.querySelector(`label[for="${element.id}"]`);
 }
 
+function isLabelWithHighConfidence(element, labelElement, distance) {
+  if (labelElement && distance) {
+    let labelRect = labelElement.getBoundingClientRect();
+
+    let elementRect = element.getBoundingClientRect();
+
+    // label on top of the element
+    if ((labelRect.bottom <= (elementRect.bottom - (elementRect.height / 2))) && distance <= 75) {
+      return true;
+    }
+    if ((labelRect.right <= (elementRect.left + (elementRect.width / 4))) && distance <= 150) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function getLabelForElement(element) {
   try {
     if (!isInput(element)) {
-      return null;
+      return {
+        label: null,
+        highConfidence: false
+      };
     }
 
     let relatedLabel = getRelatedLabel(element);
 
     if (relatedLabel) {
-      return relatedLabel;
+      return {
+        label: relatedLabel,
+        highConfidence: true
+      };
+    }
+
+    if (element.parentElement && element.parentElement.className === 'input-group') {
+      element = element.parentElement;
     }
 
     let labelElement;
+
+    let shortestDistance = null;
 
     if (element.getBoundingClientRect) {
       const labelElements = document.querySelectorAll(labelTags.join() + ',.label');
 
       let possibleLabels = Array.from(labelElements)
-        .filter(label => isVisible(label) && possiblyRelated(element, label));
-
-      let shortestDistance = null;
+        .filter(label => isVisible(label) && possiblyRelated(element, label) && label.innerText);
 
       for (const possibleLabel of possibleLabels) {
         let distance = distanceBetweenLeftCenterPoints(element, possibleLabel);
@@ -63,9 +86,15 @@ function getLabelForElement(element) {
         }
       }
     }
-    return labelElement;
+    return {
+      label: labelElement,
+      highConfidence: isLabelWithHighConfidence(element, labelElement, shortestDistance)
+    };
   } catch (error) {
-    return null;
+    return {
+      label: null,
+      highConfidence: false
+    };
   }
 }
 
