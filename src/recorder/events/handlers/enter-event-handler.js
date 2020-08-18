@@ -6,7 +6,7 @@ const ENTER_KEY_CODE = 13;
 
 export default class EnterKeyPressEventHandler {
   constructor(sources, options) {
-    this._events = fromEvent(sources, 'keypress')
+    this._events = fromEvent(sources, 'keypress', { capture: true })
       .pipe(
         filter((event) => event.key === ENTER_KEY_CODE || event.which === ENTER_KEY_CODE),
         throttleTime(500),

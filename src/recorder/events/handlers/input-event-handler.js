@@ -7,8 +7,8 @@ export default class InputEventHandler {
   constructor(sources, options) {
     this.saveAllData = options.saveAllData;
     this._events = merge(
-      fromEvent(sources, 'change'),
-      fromEvent(sources, 'input').pipe(filter((evt) => evt.target.isContentEditable))
+      fromEvent(sources, 'change', { capture: true }),
+      fromEvent(sources, 'input', { capture: true }).pipe(filter((evt) => evt.target.isContentEditable))
     )
       .pipe(
         map((event) => new ValueEntered(event, this.saveAllData, options))

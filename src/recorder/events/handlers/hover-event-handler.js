@@ -16,8 +16,8 @@ function isHoverable(element) {
 export default class HoverEventHandler {
   constructor(sources, options) {
     this._events = zip(
-      fromEvent(sources, 'mouseover'),
-      fromEvent(sources, 'mouseout'),
+      fromEvent(sources, 'mouseover', { capture: true }),
+      fromEvent(sources, 'mouseout', { capture: true }),
     ).pipe(
       filter(([enter, leave]) => {
         return enter.target === leave.target &&

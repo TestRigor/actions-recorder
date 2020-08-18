@@ -6,8 +6,8 @@ import ElementDragged from '../element-dragged';
 export default class DragEventHandler {
   constructor(sources, options) {
     this._events = zip(
-      fromEvent(sources, 'dragstart'),
-      fromEvent(sources, 'drop')
+      fromEvent(sources, 'dragstart', { capture: true }),
+      fromEvent(sources, 'drop', { capture: true })
     )
       .pipe(map(([from, to]) => {
         return new ElementDragged(from, to, options);
