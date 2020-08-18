@@ -4,7 +4,7 @@ import ElementClicked from '../element-clicked';
 
 export default class ClickEventHandler {
   constructor(sources, options) {
-    this._events = fromEvent(sources, 'click')
+    this._events = fromEvent(sources, 'click', { capture: true })
       .pipe(
         throttleTime(200),
         map((event) => new ElementClicked(event, options))
