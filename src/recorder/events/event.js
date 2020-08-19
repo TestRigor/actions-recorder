@@ -1,7 +1,9 @@
 import { getLabelForElement } from '../helpers/label-finder';
 import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
-  isInput, isButtonOrLink, isButton } from '../helpers/html-tags';
+  isInput, isButtonOrLink, isButton, LOG_OUT_IDENTIFIERS,
+  LOG_IN_IDENTIFIERS } from '../helpers/html-tags';
 import { isVisible } from '../helpers/rect-helper';
+import { leafContainsLowercaseNormalizedMultiple, attrMatch, attrMatchMultiple } from '../helpers/query-helper';
 
 export default class Event {
   constructor(event, options) {
@@ -66,6 +68,7 @@ export default class Event {
       this.index = identifyingData.index;
       this.contextElement = identifyingData.contextElement;
     }
+    this.logOutDetected = this.detectLogOut();
   }
 
   isHtmlOrBody(element) {
@@ -232,11 +235,7 @@ export default class Event {
   }
 
   elementQuery(descriptor) {
-    const queryableAttrs = ['text', 'hint', 'title', 'label', 'aria-label', 'name', 'id', 'data-test-id', 'class',
-      'placeholder', 'alternative', 'source'];
-
-    return `//*[contains(normalize-space(), "${descriptor}")] | ` +
-      queryableAttrs.map(attr => `//*[@${attr}="${descriptor}"]`).join(' | ');
+    return `//*[contains(normalize-space(), "${descriptor}")] | ` + attrMatch(descriptor);
   }
 
   getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer,
@@ -283,5 +282,36 @@ export default class Event {
 
   skipSVGInternals(element) {
     return element && element.ownerSVGElement ? this.skipSVGInternals(element.ownerSVGElement) : element;
+  }
+
+  detectLogOut() {
+    const lookForLogOutQry = leafContainsLowercaseNormalizedMultiple(LOG_OUT_IDENTIFIERS) +
+      ' | ' + attrMatchMultiple(LOG_OUT_IDENTIFIERS);
+
+    const logOutResults = document.evaluate(lookForLogOutQry,
+      document, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null);
+
+    if (logOutResults.snapshotLength) {
+      const lookForLogInQry = leafContainsLowercaseNormalizedMultiple(LOG_IN_IDENTIFIERS) +
+        ' | ' + attrMatchMultiple(LOG_IN_IDENTIFIERS);
+
+      const logInResults = document.evaluate(lookForLogInQry,
+        document, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+
+      let logInFound = false,
+        currentLogin = logInResults.iterateNext();
+
+      while (currentLogin) {
+        if (isVisible(currentLogin)) {
+          logInFound = true;
+          break;
+        }
+        currentLogin = logInResults.iterateNext();
+      }
+
+      return !logInFound;
+    }
+
+    return false;
   }
 };
