@@ -34,3 +34,7 @@ module.exports.isButton = function (element) {
   return (element.tagName && element.tagName.toLowerCase() === 'input') &&
     (element.type && (element.type === 'submit' || element.type === 'button' || element.type === 'reset'));
 };
+
+module.exports.LOG_OUT_IDENTIFIERS = ['logout', 'log out', 'signout', 'sign out', 'log me out', 'sign me out'];
+
+module.exports.LOG_IN_IDENTIFIERS = ['login', 'log in', 'sign in', 'signin', 'sign me in', 'log me in'];
