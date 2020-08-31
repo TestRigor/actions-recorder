@@ -23,6 +23,10 @@ module.exports.isInput = function (element) {
     element.isContentEditable);
 };
 
+module.exports.isSwitch = function (element) {
+  return element.type && ((element.type.toLowerCase() === 'checkbox') || (element.type.toLowerCase() === 'radio'));
+};
+
 module.exports.isButtonOrLink = function (element) {
   return (element.tagName && (element.tagName.toLowerCase() === 'button' || element.tagName.toLowerCase() === 'a'));
 };

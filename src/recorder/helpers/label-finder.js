@@ -1,23 +1,18 @@
 import { contains, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
+import { isInput, isSwitch } from './html-tags';
 
 const labelTags = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'bdo', 'map',
-  'q', 'span', 'sub', 'sup', 'label', 'text'];
+  'q', 'span', 'sub', 'sup', 'label', 'div', 'text'];
 
 function possiblyRelated(element, label) {
   const elementRect = element.getBoundingClientRect();
   const labelRect = label.getBoundingClientRect();
 
   if (contains(elementRect, labelRect) || contains(labelRect, elementRect)) {
-    return true;
+    return isSwitch(element);
   }
 
   return labelRect.left <= (elementRect.left + (elementRect.width * 0.1)) && labelRect.top <= elementRect.bottom;
-}
-
-function isInput(element) {
-  return element.tagName && (element.tagName.toLowerCase() === 'input' ||
-    element.tagName.toLowerCase() === 'select' ||
-    element.tagName.toLowerCase() === 'textarea');
 }
 
 function getRelatedLabel(element) {
@@ -34,6 +29,10 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
 
     let elementRect = element.getBoundingClientRect();
 
+    // label contains switch
+    if (contains(labelRect, elementRect) && isSwitch(element) && distance <= 50) {
+      return true;
+    }
     // label on top of the element
     if ((labelRect.bottom <= (elementRect.bottom - (elementRect.height / 2))) && distance <= 75) {
       return true;
