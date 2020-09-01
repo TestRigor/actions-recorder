@@ -145,14 +145,14 @@ export default class Event {
     if (isButton(srcElement) && srcElement.value) {
       return srcElement.value;
     }
+    if (srcElement.placeholder) {
+      return srcElement.placeholder;
+    }
 
     let relatedLabel = getLabelForElement(srcElement);
 
     if (relatedLabel.highConfidence) {
       return relatedLabel.label.innerText;
-    }
-    if (srcElement.placeholder) {
-      return srcElement.placeholder;
     }
     if (srcElement.name) {
       return srcElement.name;
