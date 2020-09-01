@@ -21,7 +21,7 @@ export default class HoverEventHandler {
     ).pipe(
       filter(([enter, leave]) => {
         return enter.target === leave.target &&
-        leave.timeStamp - enter.timeStamp > 200 &&
+        (leave.timeStamp - enter.timeStamp) > 100 &&
           isHoverable(enter.target);
       }),
       map(([, leave]) => new ElementHovered(leave, options))
