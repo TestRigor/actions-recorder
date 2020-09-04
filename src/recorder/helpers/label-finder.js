@@ -1,8 +1,5 @@
 import { contains, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
-import { isInput, isSwitch } from './html-tags';
-
-const labelTags = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd', 'bdo', 'map',
-  'q', 'span', 'sub', 'sup', 'label', 'div', 'text'];
+import { isInput, isSwitch, LABEL_TAGS } from './html-tags';
 
 function possiblyRelated(element, label) {
   const elementRect = element.getBoundingClientRect();
@@ -71,7 +68,7 @@ function getLabelForElement(element) {
     let shortestDistance = null;
 
     if (element.getBoundingClientRect) {
-      const labelElements = document.querySelectorAll(labelTags.join() + ',.label');
+      const labelElements = document.querySelectorAll(LABEL_TAGS.join() + ',.label');
 
       let possibleLabels = Array.from(labelElements)
         .filter(label => isVisible(label) && possiblyRelated(element, label) && label.innerText);

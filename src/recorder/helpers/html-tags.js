@@ -16,6 +16,11 @@ module.exports.INLINE_TAGS = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym',
 
 module.exports.CONSIDER_INNER_TEXT_TAGS = ['mat-slide-toggle'];
 
+const LABEL_TAGS = ['b', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'cite', 'code', 'dfn', 'em', 'kbd',
+  'bdo', 'map', 'q', 'span', 'sub', 'sup', 'label', 'text'];
+
+module.exports.LABEL_TAGS = LABEL_TAGS;
+
 module.exports.isInput = function (element) {
   return element.tagName && (element.tagName.toLowerCase() === 'input' ||
     element.tagName.toLowerCase() === 'select' ||
@@ -37,6 +42,14 @@ module.exports.isButton = function (element) {
   }
   return (element.tagName && element.tagName.toLowerCase() === 'input') &&
     (element.type && (element.type === 'submit' || element.type === 'button' || element.type === 'reset'));
+};
+
+module.exports.isLabel = function (element) {
+  if (!element.tagName) {
+    return false;
+  }
+  return LABEL_TAGS.indexOf(element.tagName.toLowerCase()) !== -1 ||
+    (element.tagName.toLowerCase() === 'div' && !!element.innerText);
 };
 
 module.exports.LOG_OUT_IDENTIFIERS = ['logout', 'log out', 'signout', 'sign out', 'log me out', 'sign me out'];

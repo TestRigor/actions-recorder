@@ -1,22 +1,20 @@
-function valueInRange(value, min, max) {
-  return (value >= min) && (value <= max);
-}
+const TRIVIAL_RECT = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0
+};
 
-function contains(rect, otherRect) {
-  return valueInRange(otherRect.x, rect.x, rect.x + rect.width) &&
-    valueInRange(otherRect.x + otherRect.width, rect.x, rect.x + rect.width) &&
-    valueInRange(otherRect.y, rect.y, rect.y + rect.height) &&
-    valueInRange(otherRect.y + otherRect.height, rect.y, rect.y + rect.height);
-}
+const ALPHA = 0.0000001;
 
-function distanceBetweenLeftCenterPoints(element, otherElement) {
-  const rect = element.getBoundingClientRect();
-  const otherRect = otherElement.getBoundingClientRect();
-  const rectMidY = rect.bottom - rect.height / 2;
-  const otherRectMidY = otherRect.bottom - otherRect.height / 2;
-  const distanceSquared = Math.pow(rect.x - otherRect.x, 2) + Math.pow(rectMidY - otherRectMidY, 2);
+const RELATION = [
+  ['ON_THE_LEFT_TOP', 'ON_THE_LEFT', 'ON_THE_LEFT_BOTTOM'],
+  ['ON_THE_TOP', 'NEAR', 'ON_THE_BOTTOM'],
+  ['ON_THE_RIGHT_TOP', 'ON_THE_RIGHT', 'ON_THE_RIGHT_BOTTOM']
+];
 
-  return Math.sqrt(distanceSquared);
+function isTrivial(rect) {
+  return rect === TRIVIAL_RECT;
 }
 
 function getWindowRect() {
@@ -27,13 +25,6 @@ function getWindowRect() {
     height: window.innerHeight
   };
 }
-
-const TRIVIAL_RECT = {
-  x: 0,
-  y: 0,
-  width: 0,
-  height: 0
-};
 
 function getRect(node) {
   let windowRect = getWindowRect(),
@@ -49,6 +40,156 @@ function getRect(node) {
     width: width,
     height: height
   };
+}
+
+function valueInRange(value, min, max) {
+  return (value >= min) && (value <= max);
+}
+
+function contains(rect, otherRect) {
+  return valueInRange(otherRect.x, rect.x, rect.x + rect.width) &&
+    valueInRange(otherRect.x + otherRect.width, rect.x, rect.x + rect.width) &&
+    valueInRange(otherRect.y, rect.y, rect.y + rect.height) &&
+    valueInRange(otherRect.y + otherRect.height, rect.y, rect.y + rect.height);
+}
+
+function rectObjFromDiagonal(x1, y1, x2, y2) {
+  let x1Real = x1,
+    y1Real = y1,
+    x2Real = x2,
+    y2Real = y2;
+
+  if (x2 < x1) {
+    x1Real = x2;
+    x2Real = x1;
+  }
+
+  if (y2 < y1) {
+    y1Real = y2;
+    y2Real = y1;
+  }
+  return {
+    x: x1Real,
+    y: y1Real,
+    width: x2Real - x1Real,
+    height: y2Real - y1Real
+  };
+}
+
+function intersect(rect, other) {
+  if (rect === other) {
+    return rect;
+  }
+
+  if (isTrivial(rect) || isTrivial(other)) {
+    return TRIVIAL_RECT;
+  }
+
+  let x1 = Math.max(rect.x, other.x),
+    y1 = Math.max(rect.y, other.y),
+    x2 = Math.min(rect.x + rect.width, other.x + other.width),
+    y2 = Math.min(rect.y + rect.height, other.y + other.height);
+
+  if (((x2 - x1) < 1) || ((y2 - y1) < 1)) {
+    return TRIVIAL_RECT;
+  }
+
+  return rectObjFromDiagonal(x1, y1, x2, y2);
+}
+
+function isLeft(rect, other, strict) {
+  let buffer = strict ? 0 : 1;
+
+  return (rect.x + rect.width - buffer) < other.x;
+}
+
+function isOnTop(rect, other, strict) {
+  let buffer = strict ? 0 : 1;
+
+  return (rect.y + rect.height - buffer) < other.y;
+}
+
+function getRelation(element, anchor) {
+  let xRelation = 1,
+    yRelation = 1,
+    elementRect = getRect(element),
+    anchorRect = getRect(anchor);
+
+  if (isLeft(elementRect, anchorRect, false)) {
+    xRelation = 0;
+  } else if (isLeft(anchorRect, elementRect, false)) {
+    xRelation = 2;
+  }
+  if (isOnTop(elementRect, anchorRect, false)) {
+    yRelation = 0;
+  } else if (isOnTop(anchorRect, elementRect, false)) {
+    yRelation = 2;
+  }
+  return RELATION[xRelation][yRelation];
+}
+
+function distXIfOnLeft(rect, other) {
+  if (isLeft(rect, other, true)) {
+    return other.x - (rect.x + rect.width);
+  }
+  return 0;
+}
+
+function distYIfOnTop(rect, other) {
+  if (isOnTop(rect, other, true)) {
+    return other.y - (rect.y + rect.height);
+  }
+  return 0;
+}
+
+function calcDistanceX(rect, other) {
+  return distXIfOnLeft(rect, other) + distXIfOnLeft(other, rect);
+}
+
+function calcDistanceY(rect, other) {
+  return distYIfOnTop(rect, other) + distYIfOnTop(other, rect);
+}
+
+function visualDistance(element, otherElement) {
+  let rect = getRect(element),
+    other = getRect(otherElement);
+
+  if (rect === other) {
+    // Same rectangle always overlap
+    return 0;
+  }
+
+  if (isTrivial(rect) || isTrivial(other)) {
+    // Rectangles with no width or height shouldn't be related
+    return Math.MAX_SAFE_INTEGER;
+  }
+
+  if (intersect(rect, other) !== TRIVIAL_RECT) {
+    return 0;
+  }
+
+  let diffX = calcDistanceX(rect, other),
+    diffY = calcDistanceY(rect, other);
+
+  if (diffX < ALPHA) {
+    return diffY;
+  }
+
+  if (diffY < ALPHA) {
+    return diffX;
+  }
+
+  return Math.sqrt(diffX * diffX + diffY * diffY);
+}
+
+function distanceBetweenLeftCenterPoints(element, otherElement) {
+  const rect = element.getBoundingClientRect();
+  const otherRect = otherElement.getBoundingClientRect();
+  const rectMidY = rect.bottom - rect.height / 2;
+  const otherRectMidY = otherRect.bottom - otherRect.height / 2;
+  const distanceSquared = Math.pow(rect.x - otherRect.x, 2) + Math.pow(rectMidY - otherRectMidY, 2);
+
+  return Math.sqrt(distanceSquared);
 }
 
 function getRectCenter(rect) {
@@ -117,4 +258,4 @@ function isVisible(node) {
   return isAccessible && style.getPropertyValue('display') !== 'none';
 }
 
-export {contains, distanceBetweenLeftCenterPoints, isVisible};
+export {contains, distanceBetweenLeftCenterPoints, isVisible, visualDistance, getRelation};

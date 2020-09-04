@@ -1,9 +1,12 @@
 import { getLabelForElement } from '../helpers/label-finder';
 import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
   isInput, isButtonOrLink, isButton, LOG_OUT_IDENTIFIERS,
-  LOG_IN_IDENTIFIERS } from '../helpers/html-tags';
-import { isVisible } from '../helpers/rect-helper';
-import { leafContainsLowercaseNormalizedMultiple, attrMatch, attrMatchMultiple } from '../helpers/query-helper';
+  LOG_IN_IDENTIFIERS, isLabel } from '../helpers/html-tags';
+import { isVisible, visualDistance, getRelation } from '../helpers/rect-helper';
+import {
+  leafContainsLowercaseNormalizedMultiple, attrMatch,
+  attrMatchMultiple, attrNonMatch
+} from '../helpers/query-helper';
 
 export default class Event {
   constructor(event, options) {
@@ -65,6 +68,8 @@ export default class Event {
       }
 
       this.identifier = identifyingData.identifier;
+      this.anchor = identifyingData.anchor;
+      this.anchorRelation = identifyingData.anchorRelation;
       this.index = identifyingData.index;
       this.contextElement = identifyingData.contextElement;
     }
@@ -132,10 +137,24 @@ export default class Event {
         useClass, isNotClickOfInput, this.hasPointerCursor(element), true);
       identifier = this.getDescriptor(identifiedElement, useClass, true);
     }
-    let context = calculateContext ? this.getContext(identifiedElement, identifier) : { index: -1, contextElement: '' };
+    let identifyingData = { index: -1, contextElement: '', anchor: '', relation: ''};
 
-    context.identifier = identifier;
-    return context;
+    if (identifier && calculateContext && !this.isUniqueIdentifier(element, identifier)) {
+
+      let anchor = this.getAnchorElement(identifiedElement, identifier);
+
+      if (anchor) {
+        identifyingData.anchor = this.getDescriptor(anchor, false, true);
+        identifyingData.anchorRelation = getRelation(element, anchor);
+      } else {
+        let foundContext = this.getContext(identifiedElement, identifier);
+
+        identifyingData.contextElement = foundContext.contextElement;
+        identifyingData.index = foundContext.index;
+      }
+    }
+    identifyingData.identifier = identifier;
+    return identifyingData;
   }
 
   getDescriptor(srcElement, useClass, useInnerText) {
@@ -223,12 +242,13 @@ export default class Event {
     }
 
     if (similarNodeArray.length > 1) {
-      let useContext = parent && this.isUniqueDescriptor(parent),
+      let parentIdentifier = this.getDescriptor(parent, false, false),
+        useContext = parentIdentifier && this.isUniqueIdentifier(parent, parentIdentifier),
         siblings = useContext ? similarNodeArray.filter(sibling => sibling.parent === parent) : similarNodeArray;
 
       return {
         index: siblings.length > 1 ? siblings.map(sibling => sibling.node).indexOf(srcElement) : -1,
-        contextElement: useContext ? this.getDescriptor(parent, false, false) : ''
+        contextElement: useContext ? parentIdentifier : ''
       };
     }
     return { index: -1, contextElement: '' };
@@ -260,13 +280,13 @@ export default class Event {
       this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass, stopAtButton, stopAtLastPointer) : null;
   }
 
-  isUniqueDescriptor(element, useClass) {
-    let descriptor = this.getDescriptor(element, useClass, false),
-      similarNodes = document.evaluate(this.elementQuery(descriptor), document, null, XPathResult.ANY_TYPE, null),
+  isUniqueIdentifier(element, identifier) {
+    let similarNodes = document.evaluate(this.elementQuery(identifier), document, null, XPathResult.ANY_TYPE, null),
       currentNode = similarNodes.iterateNext();
 
     while (currentNode) {
-      if (element !== currentNode && !this.isContainedByOrContains(element, currentNode) && isVisible(currentNode)) {
+      if (element !== currentNode && !this.isContainedByOrContains(element, currentNode) &&
+        this.getIdentifier(currentNode, false, true, false).identifier === identifier) {
         return false;
       }
       currentNode = similarNodes.iterateNext();
@@ -313,5 +333,42 @@ export default class Event {
     }
 
     return false;
+  }
+
+  get10thAncestor(element) {
+    let current = element,
+      traveled = 0;
+
+    while (current.parentNode && (traveled < 10)) {
+      current = current.parentNode;
+      traveled++;
+    }
+    return current;
+  }
+
+  getAnchorElement(element, identifier) {
+    // find elements with different identifiers
+    let queryRoot = this.getXPathForElement(this.get10thAncestor(element)) || '/body',
+      query = `${queryRoot}//*[not(contains(normalize-space(), "${identifier}"))] | ` +
+        attrNonMatch(identifier, queryRoot),
+      differentIdNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
+      currentDiffNode = differentIdNodes.iterateNext(),
+      shortestDistance = null,
+      anchorElement = null;
+
+    while (currentDiffNode) {
+      if (isVisible(currentDiffNode) && isLabel(currentDiffNode) && currentDiffNode !== element &&
+        !this.isContainedByOrContains(currentDiffNode, element) &&
+        identifier !== this.getIdentifier(currentDiffNode, false, true, false).identifier) {
+        let distance = visualDistance(element, currentDiffNode);
+
+        if (shortestDistance === null || distance < shortestDistance) {
+          shortestDistance = distance;
+          anchorElement = currentDiffNode;
+        }
+      }
+      currentDiffNode = differentIdNodes.iterateNext();
+    }
+    return anchorElement;
   }
 };
