@@ -11,12 +11,17 @@ function leafContainsLowercaseNormalizedMultiple(searchParams = []) {
   return searchParams.map((searchParam) => leafContainsLowercaseNormalized(searchParam)).join(' | ');
 }
 
-function attrMatch(attrValue) {
-  return QUERYABLE_ATTRS.map((attr) => `//*/body//*[@${attr}="${attrValue}"]`).join(' | ');
+function attrMatch(attrValue, searchRoot = '//*/body') {
+  return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[@${attr}="${attrValue}"]`).join(' | ');
+}
+
+function attrNonMatch(attrValue, searchRoot = '//*/body') {
+  return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[not(@${attr}="${attrValue}")]`).join(' | ');
 }
 
 function attrMatchMultiple(attrValues = []) {
   return attrValues.map((value) => attrMatch(value)).join(' | ');
 }
 
-export { leafContainsLowercaseNormalized, leafContainsLowercaseNormalizedMultiple, attrMatch, attrMatchMultiple };
+export { leafContainsLowercaseNormalized, leafContainsLowercaseNormalizedMultiple,
+  attrMatch, attrMatchMultiple, attrNonMatch };
