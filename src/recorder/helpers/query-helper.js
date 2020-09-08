@@ -2,9 +2,18 @@
 const QUERYABLE_ATTRS = ['text', 'hint', 'title', 'label', 'aria-label', 'name', 'id', 'data-test-id', 'class',
   'placeholder', 'alternative', 'source'];
 
+function cleanupQuotes(value) {
+  if (value.indexOf("'") === -1) {
+    return '\'' + value + '\'';
+  } else if (value.indexOf('\"') === -1) {
+    return '"' + value + '"';
+  }
+  return "concat('" + value.replace("'", "',\"'\",'") + "')";
+}
+
 function leafContainsLowercaseNormalized(searchParam) {
   return `//*/body//*[not(child::*) and contains(translate(normalize-space(.), "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
-  "abcdefghijklmnñopqrstuvwxyz"), "${searchParam}")]`;
+  "abcdefghijklmnñopqrstuvwxyz"), ${cleanupQuotes(searchParam)})]`;
 }
 
 function leafContainsLowercaseNormalizedMultiple(searchParams = []) {
@@ -12,11 +21,11 @@ function leafContainsLowercaseNormalizedMultiple(searchParams = []) {
 }
 
 function attrMatch(attrValue, searchRoot = '//*/body') {
-  return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[@${attr}="${attrValue}"]`).join(' | ');
+  return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[@${attr}=${cleanupQuotes(attrValue)}]`).join(' | ');
 }
 
 function attrNonMatch(attrValue, searchRoot = '//*/body') {
-  return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[not(@${attr}="${attrValue}")]`).join(' | ');
+  return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[not(@${attr}=${cleanupQuotes(attrValue)})]`).join(' | ');
 }
 
 function attrMatchMultiple(attrValues = []) {
@@ -24,4 +33,4 @@ function attrMatchMultiple(attrValues = []) {
 }
 
 export { leafContainsLowercaseNormalized, leafContainsLowercaseNormalizedMultiple,
-  attrMatch, attrMatchMultiple, attrNonMatch };
+  attrMatch, attrMatchMultiple, attrNonMatch, cleanupQuotes };

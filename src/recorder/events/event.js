@@ -5,7 +5,7 @@ import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
 import { isVisible, visualDistance, getRelation } from '../helpers/rect-helper';
 import {
   leafContainsLowercaseNormalizedMultiple, attrMatch,
-  attrMatchMultiple, attrNonMatch
+  attrMatchMultiple, attrNonMatch, cleanupQuotes
 } from '../helpers/query-helper';
 
 export default class Event {
@@ -255,7 +255,7 @@ export default class Event {
   }
 
   elementQuery(descriptor) {
-    return `//*[contains(normalize-space(), "${descriptor}")] | ` + attrMatch(descriptor);
+    return `//*[contains(normalize-space(), ${cleanupQuotes(descriptor)})] | ` + attrMatch(descriptor);
   }
 
   getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer,
@@ -349,7 +349,7 @@ export default class Event {
   getAnchorElement(element, identifier) {
     // find elements with different identifiers
     let queryRoot = this.getXPathForElement(this.get10thAncestor(element)) || '/body',
-      query = `${queryRoot}//*[not(contains(normalize-space(), "${identifier}"))] | ` +
+      query = `${queryRoot}//*[not(contains(normalize-space(), ${cleanupQuotes(identifier)}))] | ` +
         attrNonMatch(identifier, queryRoot),
       differentIdNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
       currentDiffNode = differentIdNodes.iterateNext(),
