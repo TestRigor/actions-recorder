@@ -4,8 +4,7 @@ import ElementHovered from '../element-hovered';
 
 function isHoverable(element) {
   while (element) {
-    if (element.tagName && element.tagName.toLowerCase().includes('nav') ||
-      element.className && typeof element.className === 'string' && element.className.toLowerCase().includes('hover')) {
+    if (element.tagName && element.tagName.toLowerCase().includes('nav')) {
       return true;
     }
     element = element.parentNode;
