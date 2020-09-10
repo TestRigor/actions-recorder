@@ -2,7 +2,7 @@ import { getLabelForElement } from '../helpers/label-finder';
 import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
   isInput, isButtonOrLink, isButton, LOG_OUT_IDENTIFIERS,
   LOG_IN_IDENTIFIERS, isLabel } from '../helpers/html-tags';
-import { isVisible, visualDistance, getRelation } from '../helpers/rect-helper';
+import {isVisible, visualDistance, getRelation, isPossiblyVisible} from '../helpers/rect-helper';
 import {
   leafContainsLowercaseNormalizedMultiple, attrMatch,
   attrMatchMultiple, attrNonMatch, cleanupQuotes
@@ -285,7 +285,8 @@ export default class Event {
       currentNode = similarNodes.iterateNext();
 
     while (currentNode) {
-      if (element !== currentNode && !this.isContainedByOrContains(element, currentNode) &&
+      if (element !== currentNode && element.labelElement !== currentNode &&
+        !this.isContainedByOrContains(element, currentNode) && isPossiblyVisible(currentNode) &&
         this.getIdentifier(currentNode, false, true, false).identifier === identifier) {
         return false;
       }

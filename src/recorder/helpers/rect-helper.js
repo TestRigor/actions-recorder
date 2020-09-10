@@ -227,6 +227,16 @@ function isNodeContainsOther(parent, child) {
   return false;
 }
 
+function isPossiblyVisible(node) {
+  let rect = getRect(node),
+    style = window.getComputedStyle(node);
+
+  return !!(node.offsetWidth || node.offsetHeight ||
+    (node.getClientRects() && node.getClientRects().length)) &&
+    style.getPropertyValue('visibility') !== 'hidden' &&
+    rect.height >= 1 && rect.width >= 1;
+}
+
 function isVisible(node) {
   let rect = getRect(node),
     windowRect = getWindowRect(),
@@ -234,12 +244,7 @@ function isVisible(node) {
     isOnScreen = hasRectIntersection(rect, windowRect),
     isAccessible = false;
 
-  let isPossiblyVisible = !!(node.offsetWidth || node.offsetHeight ||
-    (node.getClientRects() && node.getClientRects().length)) &&
-    style.getPropertyValue('visibility') !== 'hidden' &&
-    rect.height >= 1 && rect.width >= 1;
-
-  if (isOnScreen && isPossiblyVisible) {
+  if (isOnScreen && isPossiblyVisible(node)) {
     let center = getRectCenter(rect),
       relativeCenter = {
         x: center.x - windowRect.x,
@@ -258,4 +263,4 @@ function isVisible(node) {
   return isAccessible && style.getPropertyValue('display') !== 'none';
 }
 
-export {contains, distanceBetweenLeftCenterPoints, isVisible, visualDistance, getRelation};
+export {contains, distanceBetweenLeftCenterPoints, isPossiblyVisible, isVisible, visualDistance, getRelation};
