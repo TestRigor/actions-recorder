@@ -173,11 +173,11 @@ export default class Event {
     if (relatedLabel.highConfidence) {
       return relatedLabel.label.innerText;
     }
-    if (srcElement.name) {
-      return srcElement.name;
-    }
     if (useInnerText && !isInput(srcElement) && srcElement.innerText) {
       return srcElement.innerText;
+    }
+    if (srcElement.name) {
+      return srcElement.name;
     }
     if (srcElement.ariaLabel) {
       return srcElement.ariaLabel;
