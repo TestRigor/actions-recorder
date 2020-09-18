@@ -1,7 +1,7 @@
 import { getLabelForElement } from '../helpers/label-finder';
 import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
   isInput, isButtonOrLink, isButton, LOG_OUT_IDENTIFIERS,
-  LOG_IN_IDENTIFIERS, isLabel } from '../helpers/html-tags';
+  LOG_IN_IDENTIFIERS } from '../helpers/html-tags';
 import {isVisible, visualDistance, getRelation, isPossiblyVisible} from '../helpers/rect-helper';
 import {
   leafContainsLowercaseNormalizedMultiple, attrMatch,
@@ -129,13 +129,13 @@ export default class Event {
   }
 
   getIdentifier(element, useClass, isNotClickOfInput, calculateContext) {
-    let identifier = this.getDescriptor(element, useClass, true),
+    let identifier = this.getDescriptor(element, useClass, true).trim(),
       identifiedElement = element;
 
     if (!identifier && !isInput(element)) {
       identifiedElement = this.getIdentifiableParent(element, '', 10,
         useClass, isNotClickOfInput, this.hasPointerCursor(element), true);
-      identifier = this.getDescriptor(identifiedElement, useClass, true);
+      identifier = this.getDescriptor(identifiedElement, useClass, true).trim();
     }
     let identifyingData = { index: -1, contextElement: '', anchor: '', relation: ''};
 
@@ -340,7 +340,7 @@ export default class Event {
     let current = element,
       traveled = 0;
 
-    while (current.parentNode && (traveled < 10)) {
+    while (current.parentNode && (traveled < 10) && (current !== document.body)) {
       current = current.parentNode;
       traveled++;
     }
@@ -358,14 +358,17 @@ export default class Event {
       anchorElement = null;
 
     while (currentDiffNode) {
-      if (isVisible(currentDiffNode) && isLabel(currentDiffNode) && currentDiffNode !== element &&
-        !this.isContainedByOrContains(currentDiffNode, element) &&
-        identifier !== this.getIdentifier(currentDiffNode, false, true, false).identifier) {
-        let distance = visualDistance(element, currentDiffNode);
+      if (isVisible(currentDiffNode) && currentDiffNode !== element &&
+        !this.isContainedByOrContains(currentDiffNode, element)) {
+        let descriptor = this.getDescriptor(currentDiffNode, false, true);
 
-        if (shortestDistance === null || distance < shortestDistance) {
-          shortestDistance = distance;
-          anchorElement = currentDiffNode;
+        if (!!descriptor && (descriptor !== identifier)) {
+          let distance = visualDistance(element, currentDiffNode);
+
+          if (shortestDistance === null || distance < shortestDistance) {
+            shortestDistance = distance;
+            anchorElement = currentDiffNode;
+          }
         }
       }
       currentDiffNode = differentIdNodes.iterateNext();
