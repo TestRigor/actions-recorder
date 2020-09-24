@@ -2,8 +2,8 @@ import eventTypes from './event-types';
 import Event from './event';
 
 export default class ValueEntered extends Event {
-  constructor(event, saveAllData, options) {
-    super(event, options);
+  constructor(event, saveAllData) {
+    super(event);
     const element = event.target;
 
     if (!element) {

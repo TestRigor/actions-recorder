@@ -13,7 +13,7 @@ function isHoverable(element) {
 }
 
 export default class HoverEventHandler {
-  constructor(sources, options) {
+  constructor(sources) {
     this._events = zip(
       fromEvent(sources, 'mouseover', { capture: true }),
       fromEvent(sources, 'mouseout', { capture: true }),
@@ -23,7 +23,7 @@ export default class HoverEventHandler {
         (leave.timeStamp - enter.timeStamp) > 100 &&
           isHoverable(enter.target);
       }),
-      map(([, leave]) => new ElementHovered(leave, options))
+      map(([, leave]) => {return {event: leave, processed: new ElementHovered(leave)};})
     );
   }
 

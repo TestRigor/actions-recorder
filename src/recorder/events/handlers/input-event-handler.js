@@ -1,4 +1,4 @@
-import {fromEvent, merge} from 'rxjs';
+import {fromEvent, merge, zip} from 'rxjs';
 import {map, filter} from 'rxjs/operators';
 
 import ValueEntered from '../value-entered';
@@ -8,10 +8,16 @@ export default class InputEventHandler {
     this.saveAllData = options.saveAllData;
     this._events = merge(
       fromEvent(sources, 'change', { capture: true }),
-      fromEvent(sources, 'input', { capture: true }).pipe(filter((evt) => evt.target.isContentEditable))
-    )
+      zip(
+        fromEvent(sources, 'input', { capture: true }),
+        fromEvent(sources, 'blur', { capture: true }),
+      ).pipe(
+        filter(([input, blur]) =>
+          input.target.isContentEditable &&
+          input.target === blur.target),
+        map(([, blur]) => blur)))
       .pipe(
-        map((event) => new ValueEntered(event, this.saveAllData, options))
+        map((event) => {return {event: event, processed: new ValueEntered(event, this.saveAllData)};})
       );
   }
 

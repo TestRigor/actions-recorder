@@ -22,7 +22,10 @@ export default class Recorder {
       this.eventListener
         .events()
         .subscribe((event) => {
-          this.postNewEvent(event);
+          setTimeout(() => {
+            event.processed.calcAdditionalData(event.event, false);
+            this.postNewEvent(event.processed);
+          }, 0);
         });
     } else {
       this.subscribeToEventsPlugin();
@@ -48,17 +51,18 @@ export default class Recorder {
     this.eventSubscription = this.eventListener
       .events()
       .subscribe((event) => {
+        event.processed.calcAdditionalData(event.event, true);
         // Left for backward compability. Init
         const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
 
-        event.occurredAt = new Date();
-        events.push(event);
+        event.processed.occurredAt = new Date();
+        events.push(event.processed);
 
         localStorage.setItem(pluginSessionId, JSON.stringify(events));
         // Left for backward compability. End
 
         document.dispatchEvent(new CustomEvent('newEventRecorded', {
-          detail: event
+          detail: event.processed
         }));
       });
   }
