@@ -68,7 +68,7 @@ function getLabelForElement(element) {
     let shortestDistance = null;
 
     if (element.getBoundingClientRect) {
-      const labelElements = document.querySelectorAll(LABEL_TAGS.join() + ',.label');
+      const labelElements = document.querySelectorAll(LABEL_TAGS.join() + ',div,.label');
 
       let possibleLabels = Array.from(labelElements)
         .filter(label => isVisible(label) && possiblyRelated(element, label) && label.innerText);

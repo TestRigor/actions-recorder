@@ -9,7 +9,7 @@ import {
 } from '../helpers/query-helper';
 
 export default class Event {
-  constructor(event, options) {
+  constructor(event) {
     let element = event.target || event.toElement || event.srcElement;
 
     element = this.skipSVGInternals(element);
@@ -47,24 +47,29 @@ export default class Event {
     this.windowHeight = window.innerHeight;
     this.windowWidth = window.innerWidth;
     this.url = location.href;
+  }
 
+  calcAdditionalData(event, calculateContext) {
     if (event.type !== 'popstate') {
-      element.labelElement = getLabelForElement(element).label;
+      let element = event.target || event.toElement || event.srcElement,
+        isClick = event.type === 'click';
 
-      if (element.labelElement) {
-        this.label = element.labelElement.innerText;
+      let labelElement = getLabelForElement(element).label;
+
+      if (labelElement) {
+        this.label = labelElement.innerText;
       }
 
       if (this.shouldCheckForCustomTag()) {
         this.customTag = this.getNearestCustomTag(element);
       }
 
-      let isNotClickOfInput = event.type === 'click' && !isInput(element);
+      let isNotClickOfInput = isClick && !isInput(element);
 
-      let identifyingData = this.getIdentifier(element, false, isNotClickOfInput, this.shouldCalculateContext(options));
+      let identifyingData = this.getIdentifier(element, false, isNotClickOfInput, calculateContext, labelElement);
 
       if (!identifyingData.identifier) {
-        identifyingData = this.getIdentifier(element, true, isNotClickOfInput, this.shouldCalculateContext(options));
+        identifyingData = this.getIdentifier(element, true, isNotClickOfInput, calculateContext, labelElement);
       }
 
       this.identifier = identifyingData.identifier;
@@ -72,8 +77,8 @@ export default class Event {
       this.anchorRelation = identifyingData.anchorRelation;
       this.index = identifyingData.index;
       this.contextElement = identifyingData.contextElement;
+      this.logOutDetected = this.detectLogOut();
     }
-    this.logOutDetected = this.detectLogOut();
   }
 
   isHtmlOrBody(element) {
@@ -107,10 +112,6 @@ export default class Event {
       window.React !== undefined;
   }
 
-  shouldCalculateContext(options) {
-    return !!(options && !options.token);
-  }
-
   getNearestCustomTag(element) {
     let customElement = this.getNearestCustomElement(element);
 
@@ -128,7 +129,7 @@ export default class Event {
     return !HTML_TAGS.includes(element.localName);
   }
 
-  getIdentifier(element, useClass, isNotClickOfInput, calculateContext) {
+  getIdentifier(element, useClass, isNotClickOfInput, calculateContext, labelElement = {}) {
     let identifier = this.getDescriptor(element, useClass, true).trim(),
       identifiedElement = element;
 
@@ -139,7 +140,7 @@ export default class Event {
     }
     let identifyingData = { index: -1, contextElement: '', anchor: '', relation: ''};
 
-    if (identifier && calculateContext && !this.isUniqueIdentifier(element, identifier)) {
+    if (identifier && calculateContext && !this.isUniqueIdentifier(element, labelElement, identifier)) {
 
       let anchor = this.getAnchorElement(identifiedElement, identifier);
 
@@ -147,7 +148,7 @@ export default class Event {
         identifyingData.anchor = this.getDescriptor(anchor, false, true);
         identifyingData.anchorRelation = getRelation(element, anchor);
       } else {
-        let foundContext = this.getContext(identifiedElement, identifier);
+        let foundContext = this.getContext(identifiedElement, labelElement, identifier);
 
         identifyingData.contextElement = foundContext.contextElement;
         identifyingData.index = foundContext.index;
@@ -217,7 +218,7 @@ export default class Event {
     return element !== other && (element.contains(other) || other.contains(element));
   }
 
-  getContext(srcElement, elementDescriptor) {
+  getContext(srcElement, labelElement, elementDescriptor) {
     if (!srcElement || !elementDescriptor) {
       return { index: -1, contextElement: '' };
     }
@@ -231,7 +232,7 @@ export default class Event {
       if (isVisible(similarNode) &&
         this.getDescriptor(similarNode, true, false) === elementDescriptor &&
         !this.isContainedByOrContains(srcElement, similarNode) &&
-        similarNode !== srcElement.labelElement &&
+        similarNode !== labelElement &&
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
         similarNodeArray.push({
           node: similarNode,
@@ -243,7 +244,7 @@ export default class Event {
 
     if (similarNodeArray.length > 1) {
       let parentIdentifier = this.getDescriptor(parent, false, false),
-        useContext = parentIdentifier && this.isUniqueIdentifier(parent, parentIdentifier),
+        useContext = parentIdentifier && this.isUniqueIdentifier(parent, labelElement, parentIdentifier),
         siblings = useContext ? similarNodeArray.filter(sibling => sibling.parent === parent) : similarNodeArray;
 
       return {
@@ -280,12 +281,12 @@ export default class Event {
       this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass, stopAtButton, stopAtLastPointer) : null;
   }
 
-  isUniqueIdentifier(element, identifier) {
+  isUniqueIdentifier(element, labelElement, identifier) {
     let similarNodes = document.evaluate(this.elementQuery(identifier), document, null, XPathResult.ANY_TYPE, null),
       currentNode = similarNodes.iterateNext();
 
     while (currentNode) {
-      if (element !== currentNode && element.labelElement !== currentNode &&
+      if (element !== currentNode && labelElement !== currentNode &&
         !this.isContainedByOrContains(element, currentNode) && isPossiblyVisible(currentNode) &&
         this.getIdentifier(currentNode, false, true, false).identifier === identifier) {
         return false;

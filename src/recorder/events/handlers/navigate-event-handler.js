@@ -7,7 +7,7 @@ export default class NavigateEventHandler {
     this._events = fromEvent(sources, 'popstate')
       .pipe(
         map((event) => {
-          return new BrowserHistoryChange(event);
+          return {event: event, processed: new BrowserHistoryChange(event)};
         })
       );
   }

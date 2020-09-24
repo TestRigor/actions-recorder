@@ -19,14 +19,14 @@ export default class EventListener {
         }
       }
     }
-    let eventSources = [(new ClickEventHandler(documents, options)).events,
+    let eventSources = [(new ClickEventHandler(documents)).events,
       (new InputEventHandler(documents, options)).events,
-      (new DragEventHandler(documents, options)).events,
+      (new DragEventHandler(documents)).events,
       (new NavigateEventHandler(windows)).events,
-      (new EnterKeyPressEventHandler(documents, options)).events];
+      (new EnterKeyPressEventHandler(documents)).events];
 
     if (!dispatchEvents) {
-      eventSources.push((new HoverEventHandler(documents, options)).events);
+      eventSources.push((new HoverEventHandler(documents)).events);
     }
 
     this._events = from(eventSources)
