@@ -8,9 +8,9 @@ const TRIVIAL_RECT = {
 const ALPHA = 0.0000001;
 
 const RELATION = [
-  ['ON_THE_LEFT_TOP', 'ON_THE_LEFT', 'ON_THE_LEFT_BOTTOM'],
-  ['ON_THE_TOP', 'NEAR', 'ON_THE_BOTTOM'],
-  ['ON_THE_RIGHT_TOP', 'ON_THE_RIGHT', 'ON_THE_RIGHT_BOTTOM']
+  ['above and on the left of', 'on the left of', 'below and on the left of'],
+  ['above', 'near', 'below'],
+  ['above and on the right of', 'on the right of', 'below and on the right of']
 ];
 
 function isTrivial(rect) {
