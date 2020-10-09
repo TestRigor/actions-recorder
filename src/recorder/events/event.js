@@ -10,7 +10,7 @@ import {
 
 export default class Event {
   constructor(event) {
-    let element = event.target || event.toElement || event.srcElement;
+    let element = event.toElement || event.target || event.srcElement;
 
     element = this.skipSVGInternals(element);
 
@@ -51,8 +51,14 @@ export default class Event {
 
   calcAdditionalData(event, calculateContext) {
     if (event.type !== 'popstate') {
-      let element = event.target || event.toElement || event.srcElement,
+      let element = event.toElement || event.target || event.srcElement,
         isClick = event.type === 'click';
+
+      element = this.skipSVGInternals(element);
+
+      if (!element) {
+        return;
+      }
 
       let labelElement = getLabelForElement(element).label;
 
@@ -297,9 +303,12 @@ export default class Event {
   }
 
   hasPointerCursor(element) {
-    let style = window.getComputedStyle(element);
+    if (element !== null && element.nodeType === 1) {
+      let style = window.getComputedStyle(element);
 
-    return style && style.getPropertyValue('cursor') === 'pointer';
+      return style && style.getPropertyValue('cursor') === 'pointer';
+    }
+    return null;
   }
 
   skipSVGInternals(element) {
