@@ -22,6 +22,9 @@ export default class Recorder {
       this.eventListener
         .events()
         .subscribe((event) => {
+          if (event.processed.skipEvent) {
+            return;
+          }
           setTimeout(() => {
             event.processed.calcAdditionalData(event.event, false);
             this.postNewEvent(event.processed);
@@ -51,6 +54,9 @@ export default class Recorder {
     this.eventSubscription = this.eventListener
       .events()
       .subscribe((event) => {
+        if (event.processed.skipEvent) {
+          return;
+        }
         event.processed.calcAdditionalData(event.event, true);
         // Left for backward compability. Init
         const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
