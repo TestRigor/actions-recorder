@@ -15,6 +15,7 @@ export default class Event {
     element = this.skipSVGInternals(element);
 
     if (!element) {
+      this.skipEvent = true;
       return;
     }
     if (!this.isHtmlOrBody(element)) {
