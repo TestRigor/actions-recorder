@@ -9,6 +9,10 @@ function possiblyRelated(element, label) {
     return isSwitch(element);
   }
 
+  if (!isInput(element)) {
+    return true;
+  }
+
   return labelRect.left <= (elementRect.left + (elementRect.width * 0.1)) && labelRect.top <= elementRect.bottom;
 }
 
@@ -21,6 +25,10 @@ function getRelatedLabel(element) {
 }
 
 function isLabelWithHighConfidence(element, labelElement, distance) {
+  if (!isInput(element)) {
+    return false;
+  }
+
   if (labelElement && distance) {
     let labelRect = labelElement.getBoundingClientRect();
 
@@ -43,13 +51,6 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
 
 function getLabelForElement(element) {
   try {
-    if (!isInput(element)) {
-      return {
-        label: null,
-        highConfidence: false
-      };
-    }
-
     let relatedLabel = getRelatedLabel(element);
 
     if (relatedLabel) {

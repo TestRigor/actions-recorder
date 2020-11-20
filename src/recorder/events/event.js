@@ -181,7 +181,7 @@ export default class Event {
     if (relatedLabel.highConfidence) {
       return relatedLabel.label.innerText;
     }
-    if (useInnerText && !isInput(srcElement) && srcElement.innerText) {
+    if (useInnerText && !isInput(srcElement) && srcElement.innerText && srcElement.innerText.trim()) {
       return srcElement.innerText;
     }
     if (srcElement.name) {
@@ -294,7 +294,9 @@ export default class Event {
 
     while (currentNode) {
       if (element !== currentNode && labelElement !== currentNode &&
-        !this.isContainedByOrContains(element, currentNode) && isPossiblyVisible(currentNode) &&
+        !this.isContainedByOrContains(element, currentNode) &&
+        (!labelElement || !this.isContainedByOrContains(labelElement, currentNode)) &&
+        isPossiblyVisible(currentNode) &&
         this.getIdentifier(currentNode, false, true, false).identifier === identifier) {
         return false;
       }
