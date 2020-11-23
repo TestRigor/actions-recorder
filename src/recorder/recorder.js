@@ -51,6 +51,9 @@ export default class Recorder {
   }
 
   subscribeToEventsPlugin() {
+    // clear legacy storage, this is no longer needed as plugin handles it on its own
+    localStorage.removeItem(pluginSessionId);
+
     this.eventSubscription = this.eventListener
       .events()
       .subscribe((event) => {
@@ -58,14 +61,6 @@ export default class Recorder {
           return;
         }
         event.processed.calcAdditionalData(event.event, true);
-        // Left for backward compability. Init
-        const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
-
-        event.processed.occurredAt = new Date();
-        events.push(event.processed);
-
-        localStorage.setItem(pluginSessionId, JSON.stringify(events));
-        // Left for backward compability. End
 
         document.dispatchEvent(new CustomEvent('newEventRecorded', {
           detail: event.processed
@@ -89,17 +84,6 @@ export default class Recorder {
       }
     }
     return true;
-  }
-
-  // Left for backward compatibility
-  stopRecording() {
-    const events = JSON.parse(localStorage.getItem(pluginSessionId) || '[]');
-
-    localStorage.removeItem(pluginSessionId);
-
-    document.dispatchEvent(new CustomEvent('recordingStopped', {
-      detail: events
-    }));
   }
 
   restartWithConfig(config) {
