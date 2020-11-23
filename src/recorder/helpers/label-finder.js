@@ -74,13 +74,20 @@ function getLabelForElement(element) {
       let possibleLabels = Array.from(labelElements)
         .filter(label => isVisible(label) && possiblyRelated(element, label) && label.innerText);
 
-      for (const possibleLabel of possibleLabels) {
-        let distance = distanceBetweenLeftCenterPoints(element, possibleLabel);
+      if (possibleLabels.length) {
+        for (const possibleLabel of possibleLabels) {
+          let distance = distanceBetweenLeftCenterPoints(element, possibleLabel);
 
-        if (shortestDistance === null || distance < shortestDistance) {
-          shortestDistance = distance;
-          labelElement = possibleLabel;
+          if (shortestDistance === null || distance < shortestDistance) {
+            shortestDistance = distance;
+            labelElement = possibleLabel;
+          }
         }
+      } else {
+        return {
+          label: null,
+          highConfidence: false
+        };
       }
     }
     return {
