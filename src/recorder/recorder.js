@@ -2,7 +2,7 @@ import { EventListener } from './events';
 import { ajax } from 'rxjs/ajax';
 
 const DEFAULT_PRIORITY = -100;
-const Session = window['Session'] || {getSession: function () {}};
+const TestRigorSession = window['TestRigorSession'] || {getSession: function () {}};
 const pluginSessionId = 'tRPluginSession';
 
 export default class Recorder {
@@ -18,7 +18,7 @@ export default class Recorder {
     this.eventListener = new EventListener(config, dispatchEvents);
     if (dispatchEvents) {
       // eslint-disable-next-line no-undef,max-len
-      this.url = `${RECORDER_URL}/v1/events/${Session.getSession() || ''}`;
+      this.url = `${RECORDER_URL}/v1/events/${TestRigorSession.getSession() || ''}`;
       this.eventListener
         .events()
         .subscribe((event) => {
