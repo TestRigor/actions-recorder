@@ -24,8 +24,8 @@ function attrMatch(attrValue, searchRoot = '//*/body') {
   return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[@${attr}=${cleanupQuotes(attrValue)}]`).join(' | ');
 }
 
-function attrNonMatch(attrValue, searchRoot = '//*/body') {
-  return QUERYABLE_ATTRS.map((attr) => `${searchRoot}//*[not(@${attr}=${cleanupQuotes(attrValue)})]`).join(' | ');
+function attrNonMatch(attrValue) {
+  return QUERYABLE_ATTRS.map((attr) => `[not(@${attr}=${cleanupQuotes(attrValue)})]`).join('');
 }
 
 function attrMatchMultiple(attrValues = []) {
