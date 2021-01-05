@@ -38,7 +38,9 @@ function getRect(node) {
     x: x,
     y: y,
     width: width,
-    height: height
+    height: height,
+    right: x + width,
+    bottom: y + height
   };
 }
 
@@ -112,6 +114,7 @@ function isOnTop(rect, other, strict) {
 function getRelation(element, anchor) {
   let xRelation = 1,
     yRelation = 1,
+    roughly = false,
     elementRect = getRect(element),
     anchorRect = getRect(anchor);
 
@@ -119,13 +122,20 @@ function getRelation(element, anchor) {
     xRelation = 0;
   } else if (isLeft(anchorRect, elementRect, false)) {
     xRelation = 2;
+  } else {
+    roughly = (elementRect.x < anchorRect.x) || (elementRect.right > anchorRect.right);
   }
   if (isOnTop(elementRect, anchorRect, false)) {
     yRelation = 0;
   } else if (isOnTop(anchorRect, elementRect, false)) {
     yRelation = 2;
+  } else {
+    roughly = (elementRect.y < anchorRect.y) || (elementRect.bottom > anchorRect.bottom);
   }
-  return RELATION[xRelation][yRelation];
+  return {
+    relation: RELATION[xRelation][yRelation],
+    roughly: roughly
+  };
 }
 
 function distXIfOnLeft(rect, other) {

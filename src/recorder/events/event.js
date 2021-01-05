@@ -82,6 +82,7 @@ export default class Event {
       this.identifier = identifyingData.identifier;
       this.anchor = identifyingData.anchor;
       this.anchorRelation = identifyingData.anchorRelation;
+      this.roughly = identifyingData.roughly;
       this.index = identifyingData.index;
       this.contextElement = identifyingData.contextElement;
       this.logOutDetected = this.detectLogOut();
@@ -153,7 +154,10 @@ export default class Event {
 
       if (anchor) {
         identifyingData.anchor = this.getDescriptor(anchor, false, true);
-        identifyingData.anchorRelation = getRelation(element, anchor);
+        let relation = getRelation(element, anchor);
+
+        identifyingData.anchorRelation = relation.relation;
+        identifyingData.roughly = relation.roughly;
       } else {
         let foundContext = this.getContext(identifiedElement, labelElement, identifier);
 
@@ -363,7 +367,7 @@ export default class Event {
   getAnchorElement(element, identifier) {
     // find elements with different identifiers
     let queryRoot = this.getXPathForElement(this.get10thAncestor(element)) || '/body',
-      query = `${queryRoot}//*[not(contains(normalize-space(), ${cleanupQuotes(identifier)}))] | ` +
+      query = `${queryRoot}//*[not(contains(normalize-space(), ${cleanupQuotes(identifier)}))]` +
         attrNonMatch(identifier, queryRoot),
       differentIdNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
       currentDiffNode = differentIdNodes.iterateNext(),
