@@ -71,12 +71,15 @@ export default class Event {
         this.customTag = this.getNearestCustomTag(element);
       }
 
-      let isNotClickOfInput = isClick && !isInput(element);
+      let isNotClickOfInput = isClick && !isInput(element),
+        isHover = event.type === 'mouseout';
 
-      let identifyingData = this.getIdentifier(element, false, isNotClickOfInput, calculateContext, labelElement);
+      let identifyingData = this.getIdentifier(element, false, isNotClickOfInput,
+        !isHover && calculateContext, labelElement);
 
       if (!identifyingData.identifier) {
-        identifyingData = this.getIdentifier(element, true, isNotClickOfInput, calculateContext, labelElement);
+        identifyingData = this.getIdentifier(element, true, isNotClickOfInput,
+          !isHover && calculateContext, labelElement);
       }
 
       this.identifier = identifyingData.identifier;
@@ -366,10 +369,11 @@ export default class Event {
 
   getAnchorElement(element, identifier) {
     // find elements with different identifiers
-    let queryRoot = this.getXPathForElement(this.get10thAncestor(element)) || '/body',
+    let tenthAncestor = this.get10thAncestor(element),
+      queryRoot = this.getXPathForElement(tenthAncestor) || '/body',
       query = `${queryRoot}//*[not(contains(normalize-space(), ${cleanupQuotes(identifier)}))]` +
-        attrNonMatch(identifier, queryRoot),
-      differentIdNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
+          attrNonMatch(identifier, queryRoot),
+      differentIdNodes = document.evaluate(query, tenthAncestor, null, XPathResult.ANY_TYPE, null),
       currentDiffNode = differentIdNodes.iterateNext(),
       shortestDistance = null,
       anchorElement = null;

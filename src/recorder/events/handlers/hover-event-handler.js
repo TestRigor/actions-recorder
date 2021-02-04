@@ -1,5 +1,5 @@
 import {zip, fromEvent} from 'rxjs';
-import {map, filter} from 'rxjs/operators';
+import {map, filter, throttleTime} from 'rxjs/operators';
 import ElementHovered from '../element-hovered';
 
 function isHoverable(element) {
@@ -20,9 +20,10 @@ export default class HoverEventHandler {
     ).pipe(
       filter(([enter, leave]) => {
         return enter.target === leave.target &&
-        (leave.timeStamp - enter.timeStamp) > 100 &&
+        (leave.timeStamp - enter.timeStamp) > 250 &&
           isHoverable(enter.target);
       }),
+      throttleTime(500),
       map(([, leave]) => {return {event: leave, processed: new ElementHovered(leave)};})
     );
   }
