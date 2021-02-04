@@ -60,11 +60,13 @@ export default class Recorder {
         if (event.processed.skipEvent) {
           return;
         }
-        event.processed.calcAdditionalData(event.event, true);
+        setTimeout(() => {
+          event.processed.calcAdditionalData(event.event, true);
 
-        document.dispatchEvent(new CustomEvent('newEventRecorded', {
-          detail: event.processed
-        }));
+          document.dispatchEvent(new CustomEvent('newEventRecorded', {
+            detail: event.processed
+          }));
+        }, 0);
       });
   }
 
