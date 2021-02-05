@@ -141,82 +141,127 @@ export default class Event {
   }
 
   getIdentifier(element, useClass, isNotClickOfInput, calculateContext, labelElement = {}) {
-    let identifier = this.getDescriptor(element, useClass, true).trim(),
+    let descriptor = this.getDescriptor(element, useClass, true),
+      identifierText = descriptor.value.trim(),
+      isVisibleText = descriptor.visibleText,
       identifiedElement = element;
 
-    if (!identifier && !isInput(element)) {
+    if (!identifierText && !isInput(element)) {
       identifiedElement = this.getIdentifiableParent(element, '', 10,
         useClass, isNotClickOfInput, this.hasPointerCursor(element), true);
-      identifier = this.getDescriptor(identifiedElement, useClass, true).trim();
+      descriptor = this.getDescriptor(element, useClass, true);
+      identifierText = descriptor.value.trim();
+      isVisibleText = descriptor.visibleText;
     }
     let identifyingData = { index: -1, contextElement: '', anchor: '', relation: ''};
 
-    if (identifier && calculateContext && !this.isUniqueIdentifier(element, labelElement, identifier)) {
+    if (identifierText && calculateContext &&
+      !this.isUniqueIdentifier(element, labelElement, identifierText, isVisibleText)) {
 
-      let anchor = this.getAnchorElement(identifiedElement, identifier);
+      let anchor = this.getAnchorElement(identifiedElement, identifierText);
 
       if (anchor) {
-        identifyingData.anchor = this.getDescriptor(anchor, false, true);
+        identifyingData.anchor = this.getDescriptor(anchor, false, true).value;
         let relation = getRelation(element, anchor);
 
         identifyingData.anchorRelation = relation.relation;
         identifyingData.roughly = relation.roughly;
       } else {
-        let foundContext = this.getContext(identifiedElement, labelElement, identifier);
+        let foundContext = this.getContext(identifiedElement, labelElement, identifierText, isVisibleText);
 
         identifyingData.contextElement = foundContext.contextElement;
         identifyingData.index = foundContext.index;
       }
     }
-    identifyingData.identifier = identifier;
+    identifyingData.identifier = identifierText;
     return identifyingData;
   }
 
   getDescriptor(srcElement, useClass, useInnerText) {
     if (!srcElement) {
-      return '';
+      return {
+        value: '',
+        visibleText: false
+      };
     }
     if (isButton(srcElement) && srcElement.value) {
-      return srcElement.value;
+      return {
+        value: srcElement.value,
+        visibleText: true
+      };
     }
     if (srcElement.placeholder) {
-      return srcElement.placeholder;
+      return {
+        value: srcElement.placeholder,
+        visibleText: false
+      };
     }
-
     let relatedLabel = getLabelForElement(srcElement);
 
     if (relatedLabel.highConfidence) {
-      return relatedLabel.label.innerText;
+      return {
+        value: relatedLabel.label.innerText,
+        visibleText: true
+      };
     }
     if (useInnerText && !isInput(srcElement) && srcElement.innerText && srcElement.innerText.trim()) {
-      return srcElement.innerText;
+      return {
+        value: srcElement.innerText,
+        visibleText: true
+      };
     }
     if (srcElement.name) {
-      return srcElement.name;
+      return {
+        value: srcElement.name,
+        visibleText: false
+      };
     }
     if (srcElement.ariaLabel) {
-      return srcElement.ariaLabel;
+      return {
+        value: srcElement.ariaLabel,
+        visibleText: false
+      };
     }
     if (srcElement.hint) {
-      return srcElement.hint;
+      return {
+        value: srcElement.hint,
+        visibleText: false
+      };
     }
     if (srcElement.alt) {
-      return srcElement.alt;
+      return {
+        value: srcElement.alt,
+        visibleText: false
+      };
     }
     if (srcElement.dataTestId) {
-      return srcElement.dataTestId;
+      return {
+        value: srcElement.dataTestId,
+        visibleText: false
+      };
     }
     if (srcElement.resourceId || srcElement.id) {
-      return srcElement.resourceId || srcElement.id;
+      return {
+        value: srcElement.resourceId || srcElement.id,
+        visibleText: false
+      };
     }
-
     if (relatedLabel.label) {
-      return relatedLabel.label.innerText;
+      return {
+        value: relatedLabel.label.innerText,
+        visibleText: true
+      };
     }
     if (useClass && srcElement.className && typeof srcElement.className === 'string') {
-      return srcElement.className;
+      return {
+        value: srcElement.className,
+        visibleText: false
+      };
     }
-    return '';
+    return {
+      value: '',
+      visibleText: false
+    };
   }
 
   considerInnerText(srcElement) {
@@ -232,19 +277,19 @@ export default class Event {
     return element !== other && (element.contains(other) || other.contains(element));
   }
 
-  getContext(srcElement, labelElement, elementDescriptor) {
+  getContext(srcElement, labelElement, elementDescriptor, visibleTextOnly) {
     if (!srcElement || !elementDescriptor) {
       return { index: -1, contextElement: '' };
     }
     let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false, false, false, false),
-      query = this.elementQuery(elementDescriptor),
+      query = this.elementQuery(elementDescriptor, visibleTextOnly),
       similarNodeArray = [],
       similarNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
       similarNode = similarNodes.iterateNext();
 
     while (similarNode) {
       if (isVisible(similarNode) &&
-        this.getDescriptor(similarNode, true, false) === elementDescriptor &&
+        this.getDescriptor(similarNode, true, false).value === elementDescriptor &&
         !this.isContainedByOrContains(srcElement, similarNode) &&
         similarNode !== labelElement &&
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
@@ -257,7 +302,7 @@ export default class Event {
     }
 
     if (similarNodeArray.length > 1) {
-      let parentIdentifier = this.getDescriptor(parent, false, false),
+      let parentIdentifier = this.getDescriptor(parent, false, false).value,
         useContext = parentIdentifier && this.isUniqueIdentifier(parent, labelElement, parentIdentifier),
         siblings = useContext ? similarNodeArray.filter(sibling => sibling.parent === parent) : similarNodeArray;
 
@@ -269,8 +314,9 @@ export default class Event {
     return { index: -1, contextElement: '' };
   }
 
-  elementQuery(descriptor) {
-    return `//*[contains(normalize-space(), ${cleanupQuotes(descriptor)})] | ` + attrMatch(descriptor);
+  elementQuery(descriptor, visibleTextOnly) {
+    return `//*[normalize-space() = ${cleanupQuotes(descriptor)}]` +
+      (visibleTextOnly ? '' : ` | ${attrMatch(descriptor)}`);
   }
 
   getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer,
@@ -281,8 +327,8 @@ export default class Event {
       return null;
     }
 
-    let isDescriptiveParent = this.getDescriptor(parent, useClass, useInnerText) &&
-      this.getDescriptor(parent, useClass, useInnerText) !== childIdentifier;
+    let parentDescriptor = this.getDescriptor(parent, useClass, useInnerText).value,
+      isDescriptiveParent = parentDescriptor && parentDescriptor !== childIdentifier;
 
     if (isDescriptiveParent) {
       return parent;
@@ -295,8 +341,9 @@ export default class Event {
       this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass, stopAtButton, stopAtLastPointer) : null;
   }
 
-  isUniqueIdentifier(element, labelElement, identifier) {
-    let similarNodes = document.evaluate(this.elementQuery(identifier), document, null, XPathResult.ANY_TYPE, null),
+  isUniqueIdentifier(element, labelElement, identifier, isVisibleTextIdentifier) {
+    let similarNodes = document.evaluate(this.elementQuery(identifier, isVisibleTextIdentifier),
+        document, null, XPathResult.ANY_TYPE, null),
       currentNode = similarNodes.iterateNext();
 
     while (currentNode) {
@@ -381,7 +428,7 @@ export default class Event {
     while (currentDiffNode) {
       if (isVisible(currentDiffNode) && currentDiffNode !== element &&
         !this.isContainedByOrContains(currentDiffNode, element)) {
-        let descriptor = this.getDescriptor(currentDiffNode, false, true);
+        let descriptor = this.getDescriptor(currentDiffNode, false, true).value;
 
         if (!!descriptor && (descriptor !== identifier)) {
           let distance = visualDistance(element, currentDiffNode);
