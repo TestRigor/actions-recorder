@@ -12,18 +12,19 @@ export default class ValueEntered extends Event {
     this.placeholder = element.placeholder;
     this.name = element.name;
 
-    if (this.resourceId) {
-      try {
-        let query = document.querySelector(`[for=${this.resourceId}]`);
-
-        if (query) {
-          this.label = query.innerText;
-        }
-      } catch (error) {}
-    }
-
-    if (saveAllData === 'true' || saveAllData === true) {
+    if (saveAllData === true) {
       this.value = element.value || element.innerText;
+
+      if (element.tagName && element.tagName.toLowerCase() === 'select') {
+        for (let i = 0; i < element.children.length; i++) {
+          let option = element.children[i];
+
+          if (option.value === element.value && !!option.innerText) {
+            this.value = option.innerText;
+            break;
+          }
+        }
+      }
     }
     this.type = eventTypes.INPUT;
   }

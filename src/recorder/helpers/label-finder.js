@@ -30,6 +30,14 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
   }
 
   if (labelElement && distance) {
+    if (labelElement.htmlFor && labelElement.htmlFor !== element.id) {
+      return false;
+    }
+
+    if (labelElement.innerText.contains('\n')) {
+      return false;
+    }
+
     let labelRect = labelElement.getBoundingClientRect();
 
     let elementRect = element.getBoundingClientRect();
