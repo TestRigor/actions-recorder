@@ -210,15 +210,15 @@ export default class Event {
         visibleText: true
       };
     }
-    if (srcElement.name) {
-      return {
-        value: srcElement.name,
-        visibleText: false
-      };
-    }
     if (srcElement.ariaLabel) {
       return {
         value: srcElement.ariaLabel,
+        visibleText: false
+      };
+    }
+    if (srcElement.name) {
+      return {
+        value: srcElement.name,
         visibleText: false
       };
     }
