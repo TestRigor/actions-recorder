@@ -1,4 +1,4 @@
-import {fromEvent, merge, zip} from 'rxjs';
+import {fromEvent, merge, combineLatest} from 'rxjs';
 import {map, filter} from 'rxjs/operators';
 
 import ValueEntered from '../value-entered';
@@ -8,7 +8,7 @@ export default class InputEventHandler {
     this.saveAllData = options.saveAllData;
     this._events = merge(
       fromEvent(sources, 'change', { capture: true }),
-      zip(
+      combineLatest(
         fromEvent(sources, 'input', { capture: true }),
         fromEvent(sources, 'blur', { capture: true }),
       ).pipe(
