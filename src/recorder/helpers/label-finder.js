@@ -24,6 +24,15 @@ function getRelatedLabel(element) {
   return document.querySelector(`label[for="${element.id}"]`);
 }
 
+function getLabelledByLabels(element) {
+  let labelledBy = element.getAttribute('aria-labelledby');
+
+  if (labelledBy) {
+    return labelledBy.split(' ').map(id => document.getElementById(id));
+  }
+  return [];
+}
+
 function isLabelWithHighConfidence(element, labelElement, distance) {
   if (!isInput(element)) {
     return false;
@@ -34,7 +43,7 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
       return false;
     }
 
-    if (labelElement.innerText.contains('\n')) {
+    if (labelElement.innerText.includes('\n')) {
       return false;
     }
 
@@ -68,16 +77,30 @@ function getLabelForElement(element) {
       };
     }
 
+    let labelledByLabels = getLabelledByLabels(element);
+
+    if (labelledByLabels.length === 1) {
+      return {
+        label: labelledByLabels[0],
+        highConfidence: isLabelWithHighConfidence(element, labelledByLabels[0])
+      };
+    }
+
     if (element.parentElement && element.parentElement.className === 'input-group') {
       element = element.parentElement;
     }
 
     let labelElement;
 
-    let shortestDistance = null;
+    let shortestDistance = null,
+      labelElements = null;
 
     if (element.getBoundingClientRect) {
-      const labelElements = document.querySelectorAll(LABEL_TAGS.join() + ',div,.label');
+      if (labelledByLabels.length > 1) {
+        labelElements = labelledByLabels;
+      } else {
+        labelElements = document.querySelectorAll(LABEL_TAGS.join() + ',div,.label');
+      }
 
       let possibleLabels = Array.from(labelElements)
         .filter(label => isVisible(label) && possiblyRelated(element, label) && label.innerText);
