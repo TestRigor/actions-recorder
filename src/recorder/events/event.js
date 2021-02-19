@@ -350,7 +350,7 @@ export default class Event {
       if (element !== currentNode && labelElement !== currentNode &&
         !this.isContainedByOrContains(element, currentNode) &&
         (!labelElement || !this.isContainedByOrContains(labelElement, currentNode)) &&
-        isPossiblyVisible(currentNode) &&
+        ((isVisibleTextIdentifier && isVisible(currentNode)) || isPossiblyVisible(currentNode)) &&
         this.getIdentifier(currentNode, false, true, false).identifier === identifier) {
         return false;
       }
@@ -417,15 +417,16 @@ export default class Event {
   getAnchorElement(element, identifier) {
     // find elements with different identifiers
     let tenthAncestor = this.get10thAncestor(element),
-      queryRoot = this.getXPathForElement(tenthAncestor) || '/body',
+      queryRoot = this.getXPathForElement(tenthAncestor) || '',
       query = `${queryRoot}//*[not(contains(normalize-space(), ${cleanupQuotes(identifier)}))]` +
           attrNonMatch(identifier, queryRoot),
-      differentIdNodes = document.evaluate(query, tenthAncestor, null, XPathResult.ANY_TYPE, null),
+      differentIdNodes = document.evaluate(query, queryRoot ? tenthAncestor : document,
+        null, XPathResult.ANY_TYPE, null),
       currentDiffNode = differentIdNodes.iterateNext(),
       shortestDistance = null,
       anchorElement = null;
 
-    while (currentDiffNode) {
+    while (currentDiffNode && ((shortestDistance == null) || (shortestDistance > 250))) {
       if (isVisible(currentDiffNode) && currentDiffNode !== element &&
         !this.isContainedByOrContains(currentDiffNode, element)) {
         let descriptor = this.getDescriptor(currentDiffNode, false, true).value;
