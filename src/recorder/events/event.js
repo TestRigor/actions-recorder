@@ -1,7 +1,9 @@
 import { getLabelForElement } from '../helpers/label-finder';
-import { HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
+import {
+  HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
   isInput, isButtonOrLink, isButton, LOG_OUT_IDENTIFIERS,
-  LOG_IN_IDENTIFIERS } from '../helpers/html-tags';
+  LOG_IN_IDENTIFIERS, isLabel, hasChildren
+} from '../helpers/html-tags';
 import {isVisible, visualDistance, getRelation, isPossiblyVisible} from '../helpers/rect-helper';
 import {
   leafContainsLowercaseNormalizedMultiple, attrMatch,
@@ -426,8 +428,9 @@ export default class Event {
       shortestDistance = null,
       anchorElement = null;
 
-    while (currentDiffNode && ((shortestDistance == null) || (shortestDistance > 250))) {
-      if (isVisible(currentDiffNode) && currentDiffNode !== element &&
+    while (currentDiffNode) {
+      if ((isLabel(currentDiffNode) || isButtonOrLink(currentDiffNode)) && !hasChildren(currentDiffNode) &&
+        isVisible(currentDiffNode) && currentDiffNode !== element &&
         !this.isContainedByOrContains(currentDiffNode, element)) {
         let descriptor = this.getDescriptor(currentDiffNode, false, true).value;
 

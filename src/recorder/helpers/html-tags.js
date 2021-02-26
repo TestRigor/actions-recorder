@@ -48,8 +48,13 @@ module.exports.isLabel = function (element) {
   if (!element.tagName) {
     return false;
   }
-  return LABEL_TAGS.indexOf(element.tagName.toLowerCase()) !== -1 ||
-    (element.tagName.toLowerCase() === 'div' && !!element.innerText);
+  return !!element.innerText && ((LABEL_TAGS.indexOf(element.tagName.toLowerCase()) !== -1) ||
+    (element.tagName.toLowerCase() === 'div'));
+};
+
+module.exports.hasChildren = function (element) {
+  return element.children.length ||
+      (element.shadowRoot && element.shadowRoot.children.length);
 };
 
 module.exports.LOG_OUT_IDENTIFIERS = ['logout', 'log out', 'signout', 'sign out', 'log me out', 'sign me out'];

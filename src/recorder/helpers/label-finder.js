@@ -21,7 +21,10 @@ function getRelatedLabel(element) {
     return '';
   }
 
-  return document.querySelector(`label[for="${element.id}"]`);
+  let relatedLabel = document.evaluate(`//label[@for='${element.id}']`, document,
+    null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+
+  return relatedLabel.singleNodeValue;
 }
 
 function getLabelledByLabels(element) {
