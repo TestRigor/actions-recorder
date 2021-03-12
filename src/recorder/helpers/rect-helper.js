@@ -239,14 +239,12 @@ function isNodeContainsOther(parent, child) {
 
 function isPossiblyVisible(node) {
   let rect = getRect(node),
-    style = window.getComputedStyle(node),
-    clip = style.getPropertyValue('clip');
+    style = window.getComputedStyle(node);
 
   return !!(node.offsetWidth || node.offsetHeight ||
     (node.getClientRects() && node.getClientRects().length)) &&
     style.getPropertyValue('visibility') !== 'hidden' &&
-    rect.height >= 1 && rect.width >= 1 &&
-    clip !== 'rect(0px, 0px, 0px, 0px)';
+    rect.height >= 1 && rect.width >= 1;
 }
 
 function isVisible(node) {

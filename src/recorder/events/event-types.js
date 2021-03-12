@@ -4,7 +4,8 @@ const eventTypes = {
   INPUT: 'input',
   BROWSER_HISTORY_CHANGE: 'browserHistoryChange',
   ENTER_KEY_PRESS: 'enterKeyPress',
-  HOVER: 'hover'
+  HOVER: 'hover',
+  SCROLL: 'scroll'
 };
 
 export default eventTypes;

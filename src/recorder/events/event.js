@@ -74,14 +74,15 @@ export default class Event {
       }
 
       let isNotClickOfInput = isClick && !isInput(element),
-        isHover = event.type === 'mouseout';
+        isHover = event.type === 'mouseout',
+        isScroll = event.type === 'scroll';
 
       let identifyingData = this.getIdentifier(element, false, isNotClickOfInput,
-        !isHover && calculateContext, labelElement);
+        !isHover && calculateContext, !isScroll, labelElement);
 
       if (!identifyingData.identifier) {
         identifyingData = this.getIdentifier(element, true, isNotClickOfInput,
-          !isHover && calculateContext, labelElement);
+          !isHover && calculateContext, !isScroll, labelElement);
       }
 
       this.identifier = identifyingData.identifier;
@@ -142,23 +143,23 @@ export default class Event {
     return !HTML_TAGS.includes(element.localName);
   }
 
-  getIdentifier(element, useClass, isNotClickOfInput, calculateContext, labelElement = {}) {
-    let descriptor = this.getDescriptor(element, useClass, true),
+  getIdentifier(element, useClass, isNotClickOfInput, calculateContext, useInnerText, labelElement = {}) {
+    let descriptor = this.getDescriptor(element, useClass, useInnerText),
       identifierText = descriptor.value.trim(),
       isVisibleText = descriptor.visibleText,
       identifiedElement = element;
 
     if (!identifierText && !isInput(element)) {
       identifiedElement = this.getIdentifiableParent(element, '', 10,
-        useClass, isNotClickOfInput, this.hasPointerCursor(element), true);
-      descriptor = this.getDescriptor(element, useClass, true);
+        useClass, isNotClickOfInput, this.hasPointerCursor(element), useInnerText);
+      descriptor = this.getDescriptor(element, useClass, useInnerText);
       identifierText = descriptor.value.trim();
       isVisibleText = descriptor.visibleText;
     }
     let identifyingData = { index: -1, contextElement: '', anchor: '', relation: ''};
 
     if (identifierText && calculateContext &&
-      !this.isUniqueIdentifier(element, labelElement, identifierText, isVisibleText)) {
+      !this.isUniqueIdentifier(element, labelElement, identifierText, isVisibleText, useClass)) {
 
       let anchor = this.getAnchorElement(identifiedElement, identifierText);
 
@@ -192,7 +193,9 @@ export default class Event {
         visibleText: false
       };
     }
-    let relatedLabel = getLabelForElement(srcElement);
+    let relatedLabel =
+      srcElement.closest('a, button, .dx-treeview-toggle-item-visibility, .dx-scrollable-container') != null ?
+        { label: null } : getLabelForElement(srcElement);
 
     if (relatedLabel.highConfidence) {
       return {
@@ -279,7 +282,7 @@ export default class Event {
     return element !== other && (element.contains(other) || other.contains(element));
   }
 
-  getContext(srcElement, labelElement, elementDescriptor, visibleTextOnly) {
+  getContext(srcElement, labelElement, elementDescriptor, visibleTextOnly, useClass) {
     if (!srcElement || !elementDescriptor) {
       return { index: -1, contextElement: '' };
     }
@@ -305,7 +308,8 @@ export default class Event {
 
     if (similarNodeArray.length > 1) {
       let parentIdentifier = this.getDescriptor(parent, false, false).value,
-        useContext = parentIdentifier && this.isUniqueIdentifier(parent, labelElement, parentIdentifier),
+        useContext = parentIdentifier &&
+        this.isUniqueIdentifier(parent, labelElement, parentIdentifier, visibleTextOnly, useClass),
         siblings = useContext ? similarNodeArray.filter(sibling => sibling.parent === parent) : similarNodeArray;
 
       return {
@@ -343,7 +347,7 @@ export default class Event {
       this.getIdentifiableParent(parent, childIdentifier, --maxDepth, useClass, stopAtButton, stopAtLastPointer) : null;
   }
 
-  isUniqueIdentifier(element, labelElement, identifier, isVisibleTextIdentifier) {
+  isUniqueIdentifier(element, labelElement, identifier, isVisibleTextIdentifier, useClass) {
     let similarNodes = document.evaluate(this.elementQuery(identifier, isVisibleTextIdentifier),
         document, null, XPathResult.ANY_TYPE, null),
       currentNode = similarNodes.iterateNext();
@@ -353,7 +357,7 @@ export default class Event {
         !this.isContainedByOrContains(element, currentNode) &&
         (!labelElement || !this.isContainedByOrContains(labelElement, currentNode)) &&
         ((isVisibleTextIdentifier && isVisible(currentNode)) || isPossiblyVisible(currentNode)) &&
-        this.getIdentifier(currentNode, false, true, false).identifier === identifier) {
+        this.getIdentifier(currentNode, useClass, true, false, true).identifier === identifier) {
         return false;
       }
       currentNode = similarNodes.iterateNext();
@@ -409,14 +413,14 @@ export default class Event {
     let current = element,
       traveled = 0;
 
-    while (current.parentNode && (traveled < 10) && (current !== document.body)) {
+    while (current.parentNode && (traveled < 15) && (current !== document.body)) {
       current = current.parentNode;
       traveled++;
     }
     return current;
   }
 
-  getAnchorElement(element, identifier) {
+  getAnchorElement(element, identifier, useClass) {
     // find elements with different identifiers
     let tenthAncestor = this.get10thAncestor(element),
       queryRoot = this.getXPathForElement(tenthAncestor) || '',
@@ -432,7 +436,7 @@ export default class Event {
       if ((isLabel(currentDiffNode) || isButtonOrLink(currentDiffNode)) && !hasChildren(currentDiffNode) &&
         isVisible(currentDiffNode) && currentDiffNode !== element &&
         !this.isContainedByOrContains(currentDiffNode, element)) {
-        let descriptor = this.getDescriptor(currentDiffNode, false, true).value;
+        let descriptor = this.getDescriptor(currentDiffNode, useClass, true).value;
 
         if (!!descriptor && (descriptor !== identifier)) {
           let distance = visualDistance(element, currentDiffNode);

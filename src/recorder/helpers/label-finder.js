@@ -69,6 +69,19 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
   return false;
 }
 
+function getNearestCell(element) {
+  let current = element;
+
+  while (current.parentElement) {
+    current = current.parentElement;
+
+    if (current && current.tagName && current.tagName.toLowerCase() === 'td') {
+      return current;
+    }
+  }
+  return null;
+}
+
 function getLabelForElement(element) {
   try {
     let relatedLabel = getRelatedLabel(element);
@@ -102,11 +115,15 @@ function getLabelForElement(element) {
       if (labelledByLabels.length > 1) {
         labelElements = labelledByLabels;
       } else {
-        labelElements = document.querySelectorAll(LABEL_TAGS.join() + ',div,.label');
+        let nearestCell = getNearestCell(element),
+          queryRoot = nearestCell ? nearestCell : document;
+
+        labelElements = queryRoot.querySelectorAll(LABEL_TAGS.join() + ',div,.label');
       }
 
       let possibleLabels = Array.from(labelElements)
-        .filter(label => isVisible(label) && possiblyRelated(element, label) && label.innerText);
+        .filter(label => isVisible(label) && possiblyRelated(element, label) &&
+            label.innerText && !label.children.length);
 
       if (possibleLabels.length) {
         for (const possibleLabel of possibleLabels) {

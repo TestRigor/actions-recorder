@@ -7,7 +7,7 @@ export default class ClickEventHandler {
     this._events = fromEvent(sources, 'click', { capture: true })
       .pipe(
         throttleTime(200),
-        map((event) => {return {event: event, processed: new ElementClicked(event)};})
+        map((event) => {return {event: event, processed: new ElementClicked(event, false)};})
       );
   }
 

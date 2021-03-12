@@ -18,7 +18,7 @@ export default class InputEventHandler {
           input.target === blur.target),
         map(([, blur]) => blur)))
       .pipe(
-        filter((event) => isInput(event.target)),
+        filter((event) => event.target && isInput(event.target)),
         map((event) => {return {event: event, processed: new ValueEntered(event, this.saveAllData)};})
       );
   }
