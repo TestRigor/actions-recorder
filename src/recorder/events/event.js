@@ -1,8 +1,8 @@
 import { getLabelForElement } from '../helpers/label-finder';
 import {
   HTML_TAGS, INLINE_TAGS, CONSIDER_INNER_TEXT_TAGS,
-  isInput, isButtonOrLink, isButton, LOG_OUT_IDENTIFIERS,
-  LOG_IN_IDENTIFIERS, isLabel, hasChildren
+  isInput, isButtonOrLink, LOG_OUT_IDENTIFIERS,
+  LOG_IN_IDENTIFIERS, isLabel, hasChildren, isInputButton
 } from '../helpers/html-tags';
 import {isVisible, visualDistance, getRelation, isPossiblyVisible} from '../helpers/rect-helper';
 import {
@@ -186,12 +186,6 @@ export default class Event {
         visibleText: false
       };
     }
-    if (isButton(srcElement) && srcElement.value) {
-      return {
-        value: srcElement.value,
-        visibleText: true
-      };
-    }
     if (srcElement.placeholder) {
       return {
         value: srcElement.placeholder,
@@ -203,6 +197,12 @@ export default class Event {
     if (relatedLabel.highConfidence) {
       return {
         value: relatedLabel.label.innerText,
+        visibleText: true
+      };
+    }
+    if (isInputButton(srcElement) && srcElement.value) {
+      return {
+        value: srcElement.value,
         visibleText: true
       };
     }
