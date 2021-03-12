@@ -36,12 +36,15 @@ module.exports.isButtonOrLink = function (element) {
   return (element.tagName && (element.tagName.toLowerCase() === 'button' || element.tagName.toLowerCase() === 'a'));
 };
 
-module.exports.isButton = function (element) {
-  if (element.tagName && element.tagName.toLowerCase() === 'button') {
-    return true;
-  }
+module.exports.isInputButton = function (element) {
   return (element.tagName && element.tagName.toLowerCase() === 'input') &&
-    (element.type && (element.type === 'submit' || element.type === 'button' || element.type === 'reset'));
+      (element.type && (element.type === 'submit' || element.type === 'button' || element.type === 'reset'));
+};
+
+module.exports.isButton = function (element) {
+  let isInputButton = this.isInputButton(element);
+
+  return isInputButton || (element.tagName && (element.tagName.toLowerCase() === 'button'));
 };
 
 module.exports.isLabel = function (element) {
