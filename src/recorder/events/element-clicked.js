@@ -3,7 +3,7 @@ import Event from './event';
 
 export default class ElementClicked extends Event {
 
-  constructor(event) {
+  constructor(event, doubleClick) {
     super(event);
 
     const element = event['srcElement'];
@@ -11,6 +11,7 @@ export default class ElementClicked extends Event {
     this.type = eventTypes.CLICK;
     this.clickX = event.clientX;
     this.clickY = event.clientY;
+    this.doubleClick = doubleClick;
 
     if (!element) {
       return;
