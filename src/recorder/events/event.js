@@ -11,9 +11,17 @@ import {
 } from '../helpers/query-helper';
 
 export default class Event {
-  constructor(event) {
-    let element = event.toElement || event.target || event.srcElement;
+  constructor(event, init) {
+    if (!init) {
+      return;
+    }
 
+    let element = this.getTarget(event);
+
+    this.init(element);
+  }
+
+  init(element) {
     element = this.skipSVGInternals(element);
 
     if (!element) {
@@ -52,9 +60,34 @@ export default class Event {
     this.url = location.href;
   }
 
+  getTarget(event) {
+    let native = event.toElement || event.target || event.srcElement;
+
+    if ((event.type !== 'change') || isInput(native)) {
+      return native;
+    }
+
+    let path = event.composedPath && event.composedPath();
+
+    let first = (path && path[0]) ? path[0] : null;
+
+    if (first) {
+      if (isInput(first)) {
+        return first;
+      }
+      let inputChild = first.shadowRoot ?
+        first.shadowRoot.querySelector('input') : first.querySelector('input');
+
+      if (inputChild) {
+        return inputChild;
+      }
+    }
+    return null;
+  }
+
   calcAdditionalData(event, calculateContext) {
     if (event.type !== 'popstate') {
-      let element = event.toElement || event.target || event.srcElement,
+      let element = this.getTarget(event),
         isClick = event.type === 'click';
 
       element = this.skipSVGInternals(element);

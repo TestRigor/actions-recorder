@@ -3,12 +3,16 @@ import Event from './event';
 
 export default class ValueEntered extends Event {
   constructor(event, saveAllData) {
-    super(event);
-    const element = event.target;
+    super(event, false);
 
-    if (!element) {
+    let element = this.getTarget(event);
+
+    this.init(element);
+
+    if (this.skipEvent) {
       return;
     }
+
     this.placeholder = element.placeholder;
     this.name = element.name;
 
@@ -28,5 +32,4 @@ export default class ValueEntered extends Event {
     }
     this.type = eventTypes.INPUT;
   }
-
 };

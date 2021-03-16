@@ -4,7 +4,7 @@ import Event from './event';
 export default class ElementClicked extends Event {
 
   constructor(event, doubleClick) {
-    super(event);
+    super(event, true);
 
     const element = event['srcElement'];
 
