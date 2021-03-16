@@ -2,7 +2,6 @@ import {fromEvent, merge, combineLatest} from 'rxjs';
 import {map, filter} from 'rxjs/operators';
 
 import ValueEntered from '../value-entered';
-import {isInput} from '../../helpers/html-tags';
 
 export default class InputEventHandler {
   constructor(sources, options) {
@@ -18,7 +17,6 @@ export default class InputEventHandler {
           input.target === blur.target),
         map(([, blur]) => blur)))
       .pipe(
-        filter((event) => event.target && isInput(event.target)),
         map((event) => {return {event: event, processed: new ValueEntered(event, this.saveAllData)};})
       );
   }
