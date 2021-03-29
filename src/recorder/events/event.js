@@ -63,7 +63,7 @@ export default class Event {
   getTarget(event) {
     let native = event.toElement || event.target || event.srcElement;
 
-    if ((event.type !== 'change') || isInput(native)) {
+    if ((event.type !== 'change') || (native && isInput(native))) {
       return native;
     }
 
