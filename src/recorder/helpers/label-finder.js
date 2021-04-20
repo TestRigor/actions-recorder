@@ -1,5 +1,5 @@
 import { contains, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
-import { isInput, isSwitch, LABEL_TAGS } from './html-tags';
+import {isInput, isLabel, isSwitch, LABEL_TAGS} from './html-tags';
 
 function possiblyRelated(element, label) {
   const elementRect = element.getBoundingClientRect();
@@ -82,6 +82,16 @@ function getNearestCell(element) {
   return null;
 }
 
+function allChildrenAreLabels(element) {
+  for (let i = 0; i < element.children.length; i++) {
+    if (!isLabel(element.children[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function getLabelForElement(element) {
   try {
     let relatedLabel = getRelatedLabel(element);
@@ -123,7 +133,7 @@ function getLabelForElement(element) {
 
       let possibleLabels = Array.from(labelElements)
         .filter(label => isVisible(label) && possiblyRelated(element, label) &&
-            label.innerText && !label.children.length);
+            label.innerText && allChildrenAreLabels(label));
 
       if (possibleLabels.length) {
         for (const possibleLabel of possibleLabels) {

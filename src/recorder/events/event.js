@@ -213,6 +213,19 @@ export default class Event {
     return identifyingData;
   }
 
+  getLabelText(label) {
+    let textNodes = [];
+
+    if (label.nodeType !== 3) {
+      for (let i = 0; i < label.childNodes.length; ++i) {
+        textNodes = textNodes.concat(this.getLabelText(label.childNodes[i]));
+      }
+    } else {
+      textNodes.push(label.data);
+    }
+    return textNodes.map(t => t.trim()).filter(t => t).join(' ');
+  }
+
   getDescriptor(srcElement, useClass, useInnerText) {
     if (!srcElement) {
       return {
@@ -232,7 +245,7 @@ export default class Event {
 
     if (relatedLabel.highConfidence) {
       return {
-        value: relatedLabel.label.innerText,
+        value: this.getLabelText(relatedLabel.label),
         visibleText: true
       };
     }
@@ -286,7 +299,7 @@ export default class Event {
     }
     if (relatedLabel.label) {
       return {
-        value: relatedLabel.label.innerText,
+        value: this.getLabelText(relatedLabel.label),
         visibleText: true
       };
     }
