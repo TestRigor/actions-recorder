@@ -233,7 +233,7 @@ export default class Event {
         visibleText: false
       };
     }
-    if (srcElement.placeholder) {
+    if (srcElement.placeholder && srcElement.placeholder.trim()) {
       return {
         value: srcElement.placeholder,
         visibleText: false
