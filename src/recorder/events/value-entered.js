@@ -23,8 +23,8 @@ export default class ValueEntered extends Event {
         for (let i = 0; i < element.children.length; i++) {
           let option = element.children[i];
 
-          if (option.value === element.value && !!option.innerText) {
-            this.value = option.innerText;
+          if ((option.value === element.value) && !!option.innerText && !!option.innerText.trim()) {
+            this.value = option.innerText.trim();
             break;
           }
         }
