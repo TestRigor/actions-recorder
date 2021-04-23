@@ -6,7 +6,7 @@ function possiblyRelated(element, label) {
   const labelRect = label.getBoundingClientRect();
 
   if (contains(elementRect, labelRect) || contains(labelRect, elementRect)) {
-    return isSwitch(element);
+    return label.tagName && label.tagName.toLowerCase() !== 'div';
   }
 
   if (!isInput(element)) {
@@ -56,6 +56,11 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
 
     // label contains switch
     if (contains(labelRect, elementRect) && isSwitch(element) && distance <= 50) {
+      return true;
+    }
+    // label is visually inside the input
+    if (labelElement.tagName && labelElement.tagName.toLowerCase() !== 'div' && distance <= 50 &&
+        contains(elementRect, labelRect)) {
       return true;
     }
     // label on top of the element
