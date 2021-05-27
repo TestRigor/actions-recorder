@@ -1,12 +1,12 @@
 import { contains, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
-import {isInput, isLabel, isSwitch, LABEL_TAGS} from './html-tags';
+import { isDiv, isInput, isLabel, isSwitch, LABEL_TAGS } from './html-tags';
 
 function possiblyRelated(element, label) {
   const elementRect = element.getBoundingClientRect();
   const labelRect = label.getBoundingClientRect();
 
   if (contains(elementRect, labelRect) || contains(labelRect, elementRect)) {
-    return label.tagName && label.tagName.toLowerCase() !== 'div';
+    return !isDiv(label);
   }
 
   if (!isInput(element)) {
@@ -58,9 +58,8 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
     if (contains(labelRect, elementRect) && isSwitch(element) && distance <= 50) {
       return true;
     }
-    // label is visually inside the input
-    if (labelElement.tagName && labelElement.tagName.toLowerCase() !== 'div' && distance <= 50 &&
-        contains(elementRect, labelRect)) {
+    // label is visually inside the input or it contains the input
+    if (!isDiv(labelElement) && distance <= 50 && contains(elementRect, labelRect)) {
       return true;
     }
     // label on top of the element
@@ -138,7 +137,7 @@ function getLabelForElement(element) {
 
       let possibleLabels = Array.from(labelElements)
         .filter(label => isVisible(label) && possiblyRelated(element, label) &&
-            label.innerText && allChildrenAreLabels(label));
+            label.innerText && (!isDiv(label) || allChildrenAreLabels(label)));
 
       if (possibleLabels.length) {
         for (const possibleLabel of possibleLabels) {
