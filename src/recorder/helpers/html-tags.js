@@ -47,6 +47,10 @@ module.exports.isButton = function (element) {
   return isInputButton || (element.tagName && (element.tagName.toLowerCase() === 'button'));
 };
 
+module.exports.isDiv = function (element) {
+  return element.tagName && element.tagName.toLowerCase() === 'div';
+};
+
 module.exports.isLabel = function (element) {
   if (!element.tagName) {
     return false;
