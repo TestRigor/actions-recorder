@@ -6,8 +6,7 @@ import {
 } from '../helpers/html-tags';
 import {isVisible, visualDistance, getRelation, isPossiblyVisible} from '../helpers/rect-helper';
 import {
-  leafContainsLowercaseNormalizedMultiple, attrMatch,
-  attrMatchMultiple, attrNonMatch, cleanupQuotes
+  leafContainsLowercaseNormalizedMultiple, attrMatchMultiple, elementQuery, nonContainsQuery
 } from '../helpers/query-helper';
 
 export default class Event {
@@ -333,16 +332,16 @@ export default class Event {
       return { index: -1, contextElement: '' };
     }
     let parent = this.getIdentifiableParent(srcElement, elementDescriptor, 25, false, false, false, false),
-      query = this.elementQuery(elementDescriptor, visibleTextOnly),
+      query = elementQuery(elementDescriptor, visibleTextOnly),
       similarNodeArray = [],
       similarNodes = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
       similarNode = similarNodes.iterateNext();
 
     while (similarNode) {
       if (isVisible(similarNode) &&
-        this.getDescriptor(similarNode, true, false).value === elementDescriptor &&
         !this.isContainedByOrContains(srcElement, similarNode) &&
         similarNode !== labelElement &&
+        this.getDescriptor(similarNode, true, false).value.toLowerCase() === elementDescriptor.toLowerCase() &&
         !similarNodeArray.find(current => this.isContainedByOrContains(current.node, similarNode))) {
         similarNodeArray.push({
           node: similarNode,
@@ -364,11 +363,6 @@ export default class Event {
       };
     }
     return { index: -1, contextElement: '' };
-  }
-
-  elementQuery(descriptor, visibleTextOnly) {
-    return `//*[normalize-space() = ${cleanupQuotes(descriptor)}]` +
-      (visibleTextOnly ? '' : ` | ${attrMatch(descriptor)}`);
   }
 
   getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer,
@@ -394,16 +388,20 @@ export default class Event {
   }
 
   isUniqueIdentifier(element, labelElement, identifier, isVisibleTextIdentifier, useClass) {
-    let similarNodes = document.evaluate(this.elementQuery(identifier, isVisibleTextIdentifier),
-        document, null, XPathResult.ANY_TYPE, null),
-      currentNode = similarNodes.iterateNext();
+    let query = elementQuery(identifier, isVisibleTextIdentifier),
+      similarNodes = document.evaluate(query,
+        document, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null),
+      currentNode = similarNodes.iterateNext(),
+      isButton = isButtonOrLink(element);
 
     while (currentNode) {
-      if (element !== currentNode && labelElement !== currentNode &&
-        !this.isContainedByOrContains(element, currentNode) &&
-        (!labelElement || !this.isContainedByOrContains(labelElement, currentNode)) &&
-        ((isVisibleTextIdentifier && isVisible(currentNode)) || isPossiblyVisible(currentNode)) &&
-        this.getIdentifier(currentNode, useClass, true, false, true).identifier === identifier) {
+      if ((element !== currentNode) &&
+          (labelElement !== currentNode) &&
+          !this.isContainedByOrContains(element, currentNode) &&
+          (isButton || !labelElement || !this.isContainedByOrContains(labelElement, currentNode)) &&
+          ((isVisibleTextIdentifier && isVisible(currentNode)) || isPossiblyVisible(currentNode)) &&
+          (this.getIdentifier(currentNode, useClass, true, false, true)
+            .identifier.toLowerCase() === identifier.toLowerCase())) {
         return false;
       }
       currentNode = similarNodes.iterateNext();
@@ -470,8 +468,7 @@ export default class Event {
     // find elements with different identifiers
     let tenthAncestor = this.get10thAncestor(element),
       queryRoot = this.getXPathForElement(tenthAncestor) || '',
-      query = `${queryRoot}//*[not(contains(normalize-space(), ${cleanupQuotes(identifier)}))]` +
-          attrNonMatch(identifier, queryRoot),
+      query = nonContainsQuery(identifier, queryRoot),
       differentIdNodes = document.evaluate(query, queryRoot ? tenthAncestor : document,
         null, XPathResult.ANY_TYPE, null),
       currentDiffNode = differentIdNodes.iterateNext(),
@@ -482,9 +479,9 @@ export default class Event {
       if ((isLabel(currentDiffNode) || isButtonOrLink(currentDiffNode)) && !hasChildren(currentDiffNode) &&
         isVisible(currentDiffNode) && currentDiffNode !== element &&
         !this.isContainedByOrContains(currentDiffNode, element)) {
-        let descriptor = this.getDescriptor(currentDiffNode, useClass, true).value;
+        let descriptor = this.getDescriptor(currentDiffNode, useClass, true).value.toLowerCase();
 
-        if (!!descriptor && (descriptor !== identifier)) {
+        if (!!descriptor && (descriptor !== identifier.toLowerCase())) {
           let distance = visualDistance(element, currentDiffNode);
 
           if (shortestDistance === null || distance < shortestDistance) {
