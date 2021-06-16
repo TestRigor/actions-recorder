@@ -32,5 +32,31 @@ function attrMatchMultiple(attrValues = []) {
   return attrValues.map((value) => attrMatch(value)).join(' | ');
 }
 
+function getIgnoreCaseTranslation(searchTerm, searchIn = '.') {
+  if (!searchTerm) {
+    return '';
+  }
+
+  let cleanSearchTerm = searchTerm.replace("'", '').replace(/\s/g, ''),
+    lowerAlphabet = cleanSearchTerm.toLowerCase(),
+    upperAlphabet = cleanSearchTerm.toUpperCase();
+
+  return `translate(${searchIn}, '${upperAlphabet}', '${lowerAlphabet}')`;
+}
+
+function elementQuery(descriptor, visibleTextOnly) {
+  let text = getIgnoreCaseTranslation(descriptor, 'normalize-space(.)');
+
+  return `//*[${text} = ${cleanupQuotes(descriptor.toLowerCase())}]` +
+      (visibleTextOnly ? '' : ` | ${attrMatch(descriptor)}`);
+}
+
+function nonContainsQuery(descriptor, queryRoot = '//*/body') {
+  let text = getIgnoreCaseTranslation(descriptor, 'normalize-space(.)');
+
+  return `${queryRoot}//*[not(contains(${text}, ${cleanupQuotes(descriptor)}))]` +
+    attrNonMatch(descriptor, queryRoot);
+}
+
 export { leafContainsLowercaseNormalized, leafContainsLowercaseNormalizedMultiple,
-  attrMatch, attrMatchMultiple, attrNonMatch, cleanupQuotes };
+  attrMatch, attrMatchMultiple, attrNonMatch, cleanupQuotes, elementQuery, nonContainsQuery };
