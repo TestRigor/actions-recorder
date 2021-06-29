@@ -44,15 +44,26 @@ function getRect(node) {
   };
 }
 
+function hasBody(element) {
+  let elementRect = getRect(element);
+
+  if ((elementRect.height > ALPHA) || (elementRect.width > ALPHA)) {
+    return true;
+  }
+  return [].slice.call(element.children).some((child) => hasBody(child));
+}
+
 function valueInRange(value, min, max) {
   return (value >= min) && (value <= max);
 }
 
-function contains(rect, otherRect) {
-  return valueInRange(otherRect.x, rect.x, rect.x + rect.width) &&
-    valueInRange(otherRect.x + otherRect.width, rect.x, rect.x + rect.width) &&
-    valueInRange(otherRect.y, rect.y, rect.y + rect.height) &&
-    valueInRange(otherRect.y + otherRect.height, rect.y, rect.y + rect.height);
+function ensureRightAndBottom(rect) {
+  if (!('right' in rect)) {
+    rect.right = rect.x + rect.width;
+  }
+  if (!('bottom' in rect)) {
+    rect.bottom = rect.y + rect.height;
+  }
 }
 
 function rectObjFromDiagonal(x1, y1, x2, y2) {
@@ -99,6 +110,32 @@ function intersect(rect, other) {
   return rectObjFromDiagonal(x1, y1, x2, y2);
 }
 
+function getOverlapRatio(rect, other) {
+  let intersection = intersect(rect, other),
+    intersectionArea = intersection.width * intersection.height,
+    rectArea = rect.width * rect.height;
+
+  return (intersectionArea / rectArea);
+}
+
+function contains(rect, otherRect) {
+  ensureRightAndBottom(rect);
+  ensureRightAndBottom(otherRect);
+  return valueInRange(otherRect.x, rect.x, rect.right) &&
+      valueInRange(otherRect.right, rect.x, rect.right) &&
+      valueInRange(otherRect.y, rect.y, rect.bottom) &&
+      valueInRange(otherRect.bottom, rect.y, rect.bottom);
+}
+
+function containsOrOverlaps(rect, otherRect) {
+  if (contains(rect, otherRect)) {
+    return true;
+  }
+  let overlap = getOverlapRatio(otherRect, rect);
+
+  return overlap >= 0.3;
+}
+
 function isLeft(rect, other, strict) {
   let buffer = strict ? 0 : 1;
 
@@ -111,30 +148,85 @@ function isOnTop(rect, other, strict) {
   return (rect.y + rect.height - buffer) < other.y;
 }
 
+function extendOnX(rect) {
+  let windowRect = getWindowRect();
+
+  return {
+    x: rect.x - windowRect.width,
+    y: rect.y,
+    width: 2 * windowRect.width,
+    height: rect.height,
+    right: rect.x + windowRect.width,
+    bottom: rect.bottom
+  };
+}
+
+function extendOnY(rect) {
+  let windowRect = getWindowRect();
+
+  return {
+    x: rect.x,
+    y: rect.y - windowRect.height,
+    width: rect.width,
+    height: 2 * windowRect.height,
+    right: rect.right,
+    bottom: rect.y + windowRect.height
+  };
+}
+
 function getRelation(element, anchor) {
   let xRelation = 1,
     yRelation = 1,
     roughly = false,
     elementRect = getRect(element),
-    anchorRect = getRect(anchor);
+    anchorRect = getRect(anchor),
+    windowRect = getWindowRect(),
+    lookupArea = {};
 
   if (isLeft(elementRect, anchorRect, false)) {
     xRelation = 0;
+    lookupArea.x = 0;
+    lookupArea.width = anchorRect.x - 1;
   } else if (isLeft(anchorRect, elementRect, false)) {
     xRelation = 2;
+    lookupArea.x = anchorRect.x + 1;
+    lookupArea.width = windowRect.width;
   } else {
-    roughly = (elementRect.x < anchorRect.x) || (elementRect.right > anchorRect.right);
+    if (((elementRect.x < anchorRect.x) || (elementRect.right > anchorRect.right)) &&
+        (getOverlapRatio(elementRect, extendOnY(anchorRect)) < 0.3)) {
+      roughly = true;
+      lookupArea.x = 0;
+      lookupArea.width = windowRect.width;
+    } else {
+      roughly = false;
+      lookupArea.x = anchorRect.x;
+      lookupArea.width = anchorRect.width;
+    }
   }
   if (isOnTop(elementRect, anchorRect, false)) {
     yRelation = 0;
+    lookupArea.y = 0;
+    lookupArea.height = anchorRect.y - 1;
   } else if (isOnTop(anchorRect, elementRect, false)) {
     yRelation = 2;
+    lookupArea.y = anchorRect.y + 1;
+    lookupArea.height = windowRect.height;
   } else {
-    roughly = (elementRect.y < anchorRect.y) || (elementRect.bottom > anchorRect.bottom);
+    if (((elementRect.y < anchorRect.y) || (elementRect.bottom > anchorRect.bottom)) &&
+        (getOverlapRatio(elementRect, extendOnX(anchorRect)) < 0.3)) {
+      roughly = true;
+      lookupArea.y = 0;
+      lookupArea.height = windowRect.height;
+    } else {
+      roughly = false;
+      lookupArea.y = anchorRect.y;
+      lookupArea.height = anchorRect.height;
+    }
   }
   return {
     relation: RELATION[xRelation][yRelation],
-    roughly: roughly
+    roughly: roughly,
+    lookupArea: lookupArea
   };
 }
 
@@ -273,4 +365,5 @@ function isVisible(node) {
   return isAccessible && style.getPropertyValue('display') !== 'none';
 }
 
-export {contains, distanceBetweenLeftCenterPoints, isPossiblyVisible, isVisible, visualDistance, getRelation};
+export {contains, distanceBetweenLeftCenterPoints, isPossiblyVisible, isVisible, visualDistance,
+  getRelation, getRect, containsOrOverlaps, hasBody};

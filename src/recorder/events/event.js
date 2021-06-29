@@ -4,9 +4,15 @@ import {
   isInput, isButtonOrLink, LOG_OUT_IDENTIFIERS,
   LOG_IN_IDENTIFIERS, isLabel, hasChildren, isInputButton
 } from '../helpers/html-tags';
-import {isVisible, visualDistance, getRelation, isPossiblyVisible} from '../helpers/rect-helper';
 import {
-  leafContainsLowercaseNormalizedMultiple, attrMatchMultiple, elementQuery, nonContainsQuery
+  isVisible, visualDistance, getRelation, isPossiblyVisible,
+  containsOrOverlaps, getRect, hasBody
+} from '../helpers/rect-helper';
+import {
+  leafContainsLowercaseNormalizedMultiple,
+  attrMatchMultiple,
+  elementQuery,
+  nonContainsQuery
 } from '../helpers/query-helper';
 
 export default class Event {
@@ -112,7 +118,8 @@ export default class Event {
       let identifyingData = this.getIdentifier(element, false, isNotClickOfInput,
         !isHover && calculateContext, !isScroll, labelElement);
 
-      if (!identifyingData.identifier) {
+      if (!identifyingData.identifier &&
+          (identifyingData.index === -1 || !identifyingData.anchor || !identifyingData.anchorRelation)) {
         identifyingData = this.getIdentifier(element, true, isNotClickOfInput,
           !isHover && calculateContext, !isScroll, labelElement);
       }
@@ -190,24 +197,36 @@ export default class Event {
     }
     let identifyingData = { index: -1, contextElement: '', anchor: '', relation: ''};
 
-    if (identifierText && calculateContext &&
-      !this.isUniqueIdentifier(element, labelElement, identifierText, isVisibleText, useClass)) {
+    if (calculateContext) {
+      if (identifierText) {
+        if (!this.isUniqueIdentifier(element, labelElement, identifierText, isVisibleText, useClass)) {
+          let anchor = this.getAnchorElement(identifiedElement, identifierText);
 
-      let anchor = this.getAnchorElement(identifiedElement, identifierText);
+          if (anchor) {
+            identifyingData.anchor = this.getDescriptor(anchor, false, true).value;
+            let relation = getRelation(element, anchor);
 
-      if (anchor) {
-        identifyingData.anchor = this.getDescriptor(anchor, false, true).value;
-        let relation = getRelation(element, anchor);
+            identifyingData.anchorRelation = relation.relation;
+            identifyingData.roughly = relation.roughly;
+          } else {
+            let foundContext = this.getContext(identifiedElement, labelElement, identifierText, isVisibleText);
 
-        identifyingData.anchorRelation = relation.relation;
-        identifyingData.roughly = relation.roughly;
+            identifyingData.contextElement = foundContext.contextElement;
+            identifyingData.index = foundContext.index;
+          }
+        }
       } else {
-        let foundContext = this.getContext(identifiedElement, labelElement, identifierText, isVisibleText);
+        let genericReference = this.getGenericAnchorReference(element, useClass);
 
-        identifyingData.contextElement = foundContext.contextElement;
-        identifyingData.index = foundContext.index;
+        if (genericReference) {
+          identifyingData.index = genericReference.index;
+          identifyingData.anchor = genericReference.anchor;
+          identifyingData.anchorRelation = genericReference.anchorRelation;
+          identifyingData.roughly = genericReference.roughly;
+        }
       }
     }
+
     identifyingData.identifier = identifierText;
     return identifyingData;
   }
@@ -296,12 +315,6 @@ export default class Event {
         visibleText: false
       };
     }
-    if (relatedLabel.label) {
-      return {
-        value: this.getLabelText(relatedLabel.label),
-        visibleText: true
-      };
-    }
     if (useClass && srcElement.className && typeof srcElement.className === 'string') {
       return {
         value: srcElement.className,
@@ -369,7 +382,7 @@ export default class Event {
     useInnerText) {
     let parent = srcElement.parentNode;
 
-    if (!parent) {
+    if (!parent || (parent === document.body)) {
       return null;
     }
 
@@ -493,5 +506,65 @@ export default class Event {
       currentDiffNode = differentIdNodes.iterateNext();
     }
     return anchorElement;
+  }
+
+  getGenericAnchorReference(element, useClass) {
+    let query = '//*/body//*[not(*)]', // only leaf elements
+      possibleAnchors = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
+      current = possibleAnchors.iterateNext(),
+      currentDistance,
+      currentIdentifier,
+      anchor,
+      anchorIdentifier;
+
+    while (current) {
+      if (!this.isContainedByOrContains(current, element)) {
+        let distance = visualDistance(element, current);
+
+        if ((!currentDistance || distance < currentDistance)) {
+          currentIdentifier = this.getIdentifier(current, useClass, true, false, true).identifier;
+          if (currentIdentifier && this.isUniqueIdentifier(current, null, currentIdentifier, true, useClass)) {
+            currentDistance = distance;
+            anchor = current;
+            anchorIdentifier = currentIdentifier;
+          }
+        }
+      }
+      current = possibleAnchors.iterateNext();
+    }
+
+    if (anchor) {
+      let anchorRelation = getRelation(element, anchor),
+        remainingElements = document.evaluate(query, document, null, XPathResult.ANY_TYPE, null),
+        remaining = remainingElements.iterateNext(),
+        index = 0,
+        elementIndex = -1;
+
+      while (remaining) {
+        if ((isButtonOrLink(element) && !isButtonOrLink(remaining)) ||
+            (isInput(element) && !isInput(remaining)) ||
+            remaining === anchor ||
+            !hasBody(remaining)) {
+          remaining = remainingElements.iterateNext();
+          continue;
+        }
+        if (containsOrOverlaps(anchorRelation.lookupArea, getRect(remaining))) {
+          if (remaining === element) {
+            elementIndex = index;
+          }
+          index++;
+        }
+        remaining = remainingElements.iterateNext();
+      }
+      if (anchorIdentifier && anchorRelation.relation && (elementIndex > -1)) {
+        return {
+          index: elementIndex,
+          anchor: anchorIdentifier,
+          anchorRelation: anchorRelation.relation,
+          roughly: anchorRelation.roughly
+        };
+      }
+    }
+    return {};
   }
 };
