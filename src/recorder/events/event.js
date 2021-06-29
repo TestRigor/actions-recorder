@@ -184,7 +184,7 @@ export default class Event {
     if (!identifierText && !isInput(element)) {
       identifiedElement = this.getIdentifiableParent(element, '', 10,
         useClass, isNotClickOfInput, this.hasPointerCursor(element), useInnerText);
-      descriptor = this.getDescriptor(element, useClass, useInnerText);
+      descriptor = this.getDescriptor(identifiedElement, useClass, useInnerText);
       identifierText = descriptor.value.trim();
       isVisibleText = descriptor.visibleText;
     }
