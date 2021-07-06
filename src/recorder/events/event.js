@@ -200,10 +200,20 @@ export default class Event {
     if (calculateContext) {
       if (identifierText) {
         if (!this.isUniqueIdentifier(element, labelElement, identifierText, isVisibleText, useClass)) {
-          let anchor = this.getAnchorElement(identifiedElement, identifierText);
+          let anchor = this.getAnchorElement(identifiedElement, identifierText, false, []),
+            anchorDescriptor = this.getDescriptor(anchor, false, true).value,
+            excludedText = Array.of(anchorDescriptor.toLowerCase()),
+            attempts = 1;
 
+          while ((attempts <= 3) && anchor && anchorDescriptor &&
+          !this.isUniqueIdentifier(anchor, null, anchorDescriptor, true, false)) {
+            anchor = this.getAnchorElement(identifiedElement, identifierText, false, excludedText);
+            anchorDescriptor = this.getDescriptor(anchor, false, true).value;
+            excludedText.push(anchorDescriptor.toLowerCase());
+            attempts++;
+          }
           if (anchor) {
-            identifyingData.anchor = this.getDescriptor(anchor, false, true).value;
+            identifyingData.anchor = anchorDescriptor;
             let relation = getRelation(element, anchor);
 
             identifyingData.anchorRelation = relation.relation;
@@ -477,7 +487,7 @@ export default class Event {
     return current;
   }
 
-  getAnchorElement(element, identifier, useClass) {
+  getAnchorElement(element, identifier, useClass, excludedText = []) {
     // find elements with different identifiers
     let tenthAncestor = this.get10thAncestor(element),
       queryRoot = this.getXPathForElement(tenthAncestor) || '',
@@ -494,10 +504,10 @@ export default class Event {
         !this.isContainedByOrContains(currentDiffNode, element)) {
         let descriptor = this.getDescriptor(currentDiffNode, useClass, true).value.toLowerCase();
 
-        if (!!descriptor && (descriptor !== identifier.toLowerCase())) {
+        if (!!descriptor && (descriptor !== identifier.toLowerCase()) && (excludedText.indexOf(descriptor) === -1)) {
           let distance = visualDistance(element, currentDiffNode);
 
-          if (shortestDistance === null || distance < shortestDistance) {
+          if ((shortestDistance === null) || (distance < shortestDistance)) {
             shortestDistance = distance;
             anchorElement = currentDiffNode;
           }
