@@ -528,7 +528,7 @@ export default class Event {
       anchorIdentifier;
 
     while (current) {
-      if (!this.isContainedByOrContains(current, element)) {
+      if (isVisible(current) && !this.isContainedByOrContains(current, element)) {
         let distance = visualDistance(element, current);
 
         if ((!currentDistance || distance < currentDistance)) {
