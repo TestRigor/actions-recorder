@@ -4,7 +4,10 @@ import Event from './event';
 export default class BrowserHistoryChange extends Event {
 
   constructor(event) {
-    super(event, true);
+    super(event, false);
+
+    this.url = location.href;
+
     this.type = eventTypes.BROWSER_HISTORY_CHANGE;
   }
 };
