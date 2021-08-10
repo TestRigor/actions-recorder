@@ -1,5 +1,5 @@
 import {from} from 'rxjs';
-import { publish, mergeAll} from 'rxjs/operators';
+import { publish, mergeAll } from 'rxjs/operators';
 
 import {ClickEventHandler, InputEventHandler, DragEventHandler, NavigateEventHandler, EnterKeyPressEventHandler,
   HoverEventHandler, DoubleClickEventHandler, ScrollEventHandler} from './handlers';
@@ -34,9 +34,14 @@ export default class EventListener {
     this._events = from(eventSources)
       .pipe(mergeAll(), publish());
     this._events.connect();
+    this._documents = documents;
   }
 
   events() {
     return this._events;
+  }
+
+  documents() {
+    return this._documents;
   }
 };
