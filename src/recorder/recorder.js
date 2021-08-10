@@ -68,6 +68,17 @@ export default class Recorder {
           }));
         }, 0);
       });
+    let recorder = this;
+
+    this.eventListener.documents().forEach((doc) => {
+      let current = doc.removeEventListener;
+
+      doc.removeEventListener = function (type, listener) {
+        current(type, listener);
+        setTimeout(() => recorder.restartWithConfig(recorder.config), 100);
+        doc.removeEventListener = current;
+      };
+    });
   }
 
   static shouldDispatchEvents(config) {
