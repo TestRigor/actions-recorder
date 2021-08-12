@@ -104,7 +104,7 @@ export default class Event {
       let labelElement = getLabelForElement(element).label;
 
       if (labelElement) {
-        this.label = labelElement.innerText;
+        this.label = this.stripAsteriskAndTrim(labelElement.innerText);
       }
 
       if (this.shouldCheckForCustomTag()) {
@@ -241,6 +241,13 @@ export default class Event {
     return identifyingData;
   }
 
+  stripAsteriskAndTrim(label) {
+    if (!label) {
+      return '';
+    }
+    return label.replace(/^\s*\**\s*|\s*\**\s*$/g, '');
+  }
+
   getLabelText(label) {
     let textNodes = [];
 
@@ -273,7 +280,7 @@ export default class Event {
 
     if (relatedLabel.highConfidence) {
       return {
-        value: this.getLabelText(relatedLabel.label),
+        value: this.stripAsteriskAndTrim(this.getLabelText(relatedLabel.label)),
         visibleText: true
       };
     }
