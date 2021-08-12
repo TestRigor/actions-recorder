@@ -70,6 +70,8 @@ export default class Recorder {
       });
     let recorder = this;
 
+    document.dispatchEvent(new CustomEvent('testRigorJsRecorderLoaded'));
+
     this.eventListener.documents().forEach((doc) => {
       let current = doc.removeEventListener;
 
