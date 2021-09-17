@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npx webpack --config webpack.config.js --mode=production --env.RECORDER_URL='https://recorder.testrigor.com'",
     "dev": "npx webpack --progress --colors --watch --mode development",
-    "start": "npx webpack-dev-server --open --mode development --env.RECORDER_URL=http://localhost:8085"
+    "start": "npx webpack-dev-server --mode development --env.RECORDER_URL=http://localhost:8085 --disable-host-check"
   },
   "keywords": [],
   "author": "",
