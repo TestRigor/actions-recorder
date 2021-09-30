@@ -39,6 +39,7 @@ export default class Recorder {
     ajax({
       url: this.url,
       method: 'POST',
+      async: event.type !== 'submit' && !event.isSubmitButton,
       headers: {
         'Content-Type': 'application/json',
         'Api-Token': this.config.token

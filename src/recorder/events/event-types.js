@@ -5,7 +5,8 @@ const eventTypes = {
   BROWSER_HISTORY_CHANGE: 'browserHistoryChange',
   ENTER_KEY_PRESS: 'enterKeyPress',
   HOVER: 'hover',
-  SCROLL: 'scroll'
+  SCROLL: 'scroll',
+  SUBMIT: 'submit'
 };
 
 export default eventTypes;

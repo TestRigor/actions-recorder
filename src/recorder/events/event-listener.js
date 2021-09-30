@@ -2,7 +2,7 @@ import {from} from 'rxjs';
 import { publish, mergeAll } from 'rxjs/operators';
 
 import {ClickEventHandler, InputEventHandler, DragEventHandler, NavigateEventHandler, EnterKeyPressEventHandler,
-  HoverEventHandler, DoubleClickEventHandler, ScrollEventHandler} from './handlers';
+  HoverEventHandler, DoubleClickEventHandler, ScrollEventHandler, SubmitEventHandler} from './handlers';
 
 export default class EventListener {
   constructor(options, dispatchEvents) {
@@ -25,7 +25,8 @@ export default class EventListener {
       (new NavigateEventHandler(windows)).events,
       (new EnterKeyPressEventHandler(documents)).events,
       (new DoubleClickEventHandler(documents)).events,
-      (new ScrollEventHandler(documents)).events];
+      (new ScrollEventHandler(documents)).events,
+      (new SubmitEventHandler(documents)).events];
 
     if (!dispatchEvents) {
       eventSources.push((new HoverEventHandler(documents)).events);
