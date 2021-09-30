@@ -95,6 +95,35 @@ export default class Event {
       let element = this.getTarget(event),
         isClick = event.type === 'click';
 
+      if (event.type === 'submit') {
+        this.formData = [];
+        let formElement;
+
+        for (let i = 0; i < element.length; i++) {
+          formElement = element[i];
+          if (!isInputButton(formElement) && isInput(formElement) && formElement.value && isVisible(formElement)) {
+
+            let label = getLabelForElement(formElement).label,
+              identifyingData = this.getIdentifier(formElement, false, true,
+                true, true, label);
+
+            if (identifyingData) {
+              this.formData.push({
+                value: formElement.value,
+                identifier: identifyingData.identifier,
+                anchor: identifyingData.anchor,
+                anchorRelation: identifyingData.anchorRelation,
+                roughly: identifyingData.roughly,
+                index: identifyingData.index,
+                contextElement: identifyingData.contextElement,
+                xpath: this.getXPathForElement(formElement)
+              });
+            }
+          }
+        }
+        return;
+      }
+
       element = this.skipSVGInternals(element);
 
       if (!element) {
@@ -131,6 +160,7 @@ export default class Event {
       this.index = identifyingData.index;
       this.contextElement = identifyingData.contextElement;
       this.logOutDetected = this.detectLogOut();
+      this.isSubmitButton = isInput(element) && element.type === 'submit';
     }
   }
 

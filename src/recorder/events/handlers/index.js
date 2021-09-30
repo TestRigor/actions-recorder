@@ -6,6 +6,7 @@ import EnterKeyPressEventHandler from './enter-event-handler';
 import HoverEventHandler from './hover-event-handler';
 import DoubleClickEventHandler from './doubleclick-event-handler';
 import ScrollEventHandler from './scroll-event-handler';
+import SubmitEventHandler from './submit-event-handler';
 
-export {ClickEventHandler, InputEventHandler, DragEventHandler, NavigateEventHandler,
-  EnterKeyPressEventHandler, HoverEventHandler, DoubleClickEventHandler, ScrollEventHandler};
+export {ClickEventHandler, InputEventHandler, DragEventHandler, NavigateEventHandler, EnterKeyPressEventHandler,
+  HoverEventHandler, DoubleClickEventHandler, ScrollEventHandler, SubmitEventHandler};
