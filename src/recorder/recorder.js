@@ -1,4 +1,5 @@
 import { EventListener } from './events';
+import { Event } from './events';
 import { ajax } from 'rxjs/ajax';
 
 const DEFAULT_PRIORITY = -100;
@@ -108,5 +109,31 @@ export default class Recorder {
     }
     this.config = config;
     this.startRecorder(config);
+  }
+
+  getIdentifier(element) {
+    try {
+      if (element) {
+        let evt = new Event();
+
+        let identifierData = evt.getIdentifier(element, false, true, true, true, {});
+
+        if (!identifierData.identifier) {
+          identifierData = evt.getIdentifier(element, true, true, true, true, {});
+        }
+
+        if (identifierData.identifier) {
+          let textIdentifier = `"${identifierData.identifier}"`;
+
+          textIdentifier += identifierData.anchor ?
+            ` ${identifierData.anchorRelation} "${identifierData.anchor}"` : '';
+          return textIdentifier;
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to get identifier for element');
+    }
+
+    return '';
   }
 }

@@ -3,6 +3,7 @@ import Recorder from './recorder/recorder.js';
 
 function init(options) {
   window['Recorder'] = new Recorder(options);
+  window['TestRigorRecorder'] = window['Recorder'];
 
   return window.Recorder;
 }

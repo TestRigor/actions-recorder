@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
+const LibraryAliasPlugin = require('./webpack-utils/library-alias-plugin');
 
 const config = {
   entry: __dirname + '/src/index.js',
@@ -32,7 +33,7 @@ const config = {
     extensions: ['.json', '.js']
   },
   plugins: [
-
+    new LibraryAliasPlugin('TestRigorRecorder')
   ]
 };
 
