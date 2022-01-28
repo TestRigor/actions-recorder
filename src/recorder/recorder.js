@@ -1,6 +1,7 @@
 import { EventListener } from './events';
 import { Event } from './events';
 import { ajax } from 'rxjs/ajax';
+import { getLabelForElement } from './helpers/label-finder';
 
 const DEFAULT_PRIORITY = -100;
 const TestRigorSession = window['TestRigorSession'] || {getSession: function () {}};
@@ -116,10 +117,12 @@ export default class Recorder {
       if (element) {
         let evt = new Event();
 
-        let identifierData = evt.getIdentifier(element, false, true, true, true, {});
+        let labelElement = getLabelForElement(element).label;
+
+        let identifierData = evt.getIdentifier(element, false, true, true, true, labelElement);
 
         if (!identifierData.identifier) {
-          identifierData = evt.getIdentifier(element, true, true, true, true, {});
+          identifierData = evt.getIdentifier(element, true, true, true, true, labelElement);
         }
 
         if (identifierData.identifier) {
