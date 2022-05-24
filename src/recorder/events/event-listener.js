@@ -2,7 +2,8 @@ import {from} from 'rxjs';
 import { publish, mergeAll } from 'rxjs/operators';
 
 import {ClickEventHandler, InputEventHandler, DragEventHandler, NavigateEventHandler, EnterKeyPressEventHandler,
-  HoverEventHandler, DoubleClickEventHandler, ScrollEventHandler, SubmitEventHandler} from './handlers';
+  HoverEventHandler, DoubleClickEventHandler, ScrollEventHandler, SubmitEventHandler,
+  TextSelectedEventHandler} from './handlers';
 
 export default class EventListener {
   constructor(options, dispatchEvents) {
@@ -30,6 +31,7 @@ export default class EventListener {
 
     if (!dispatchEvents) {
       eventSources.push((new HoverEventHandler(documents)).events);
+      eventSources.push((new TextSelectedEventHandler(documents)).events);
     }
 
     this._events = from(eventSources)

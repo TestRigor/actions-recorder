@@ -6,7 +6,8 @@ const eventTypes = {
   ENTER_KEY_PRESS: 'enterKeyPress',
   HOVER: 'hover',
   SCROLL: 'scroll',
-  SUBMIT: 'submit'
+  SUBMIT: 'submit',
+  TEXT_SELECTION: 'textSelected'
 };
 
 export default eventTypes;
