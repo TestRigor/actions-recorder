@@ -1,5 +1,5 @@
 import { contains, distanceBetweenLeftCenterPoints, isVisible } from './rect-helper';
-import { isDiv, isInput, isLabel, isSwitch, LABEL_TAGS } from './html-tags';
+import { isDiv, isInput, isLabel, LABEL_TAGS } from './html-tags';
 
 function possiblyRelated(element, label) {
   const elementRect = element.getBoundingClientRect();
@@ -54,8 +54,8 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
 
     let elementRect = element.getBoundingClientRect();
 
-    // label contains switch
-    if (contains(labelRect, elementRect) && isSwitch(element) && distance <= 50) {
+    // label contains element
+    if (contains(labelRect, elementRect) && distance <= 50) {
       return true;
     }
     // label is visually inside the input or it contains the input
@@ -112,7 +112,7 @@ function getLabelForElement(element) {
     if (labelledByLabels.length === 1) {
       return {
         label: labelledByLabels[0],
-        highConfidence: isLabelWithHighConfidence(element, labelledByLabels[0])
+        highConfidence: true
       };
     }
 
