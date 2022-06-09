@@ -68,24 +68,37 @@ export default class Event {
   getTarget(event) {
     let native = event.toElement || event.target || event.srcElement;
 
-    if ((event.type !== 'change') || (native && isInput(native))) {
-      return native;
-    }
-
     let path = event.composedPath && event.composedPath();
+
+    if (!path || !path[0]) {
+      // it is advised to use composedPath() over event.path
+      // but event.path can have the data in cases where composedPath is empty
+      path = event.path;
+    }
 
     let first = (path && path[0]) ? path[0] : null;
 
-    if (first) {
-      if (isInput(first)) {
+    if ((event.type === 'change')) {
+      if (native && isInput(native)) {
+        return native;
+      }
+      if (first) {
+        if (isInput(first)) {
+          return first;
+        }
+        let inputChild = first.shadowRoot ?
+          first.shadowRoot.querySelector('input') : first.querySelector('input');
+
+        if (inputChild) {
+          return inputChild;
+        }
+      }
+    } else {
+      if (native.shadowRoot && first && (first !== native)) {
+        // if the element is in a shadow dom get the target from the path
         return first;
       }
-      let inputChild = first.shadowRoot ?
-        first.shadowRoot.querySelector('input') : first.querySelector('input');
-
-      if (inputChild) {
-        return inputChild;
-      }
+      return native;
     }
     return null;
   }
@@ -428,6 +441,11 @@ export default class Event {
   getIdentifiableParent(srcElement, childIdentifier, maxDepth, useClass, stopAtButton, stopAtLastPointer,
     useInnerText) {
     let parent = srcElement.parentNode;
+
+    if (parent && parent.host) {
+      // if an element's parent is a document-fragment skip to its host
+      parent = parent.host;
+    }
 
     if (!parent || (parent === document.body)) {
       return null;
