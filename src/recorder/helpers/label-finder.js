@@ -46,7 +46,7 @@ function isLabelWithHighConfidence(element, labelElement, distance) {
       return false;
     }
 
-    if (labelElement.innerText.includes('\n')) {
+    if ((labelElement.tagName !== 'LABEL') && labelElement.innerText.trim().includes('\n')) {
       return false;
     }
 
