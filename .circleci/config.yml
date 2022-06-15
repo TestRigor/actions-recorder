@@ -1,12 +1,13 @@
 version: 2.1
 orbs:
-  aws-s3: circleci/aws-s3@2.0.0
+  azure-cli: circleci/azure-cli@1.2.2
 jobs:
   cdn:
     docker:
     - image: 'cimg/node:16.13.2'
     steps:
     - checkout
+    - azure-cli/install
     - run:
         name: Dependencies
         command: |
@@ -15,11 +16,10 @@ jobs:
         name: Build
         command: |
           npm run build
-    - aws-s3/copy:
-        from: lib/actions-recorder.min.js
-        to: 's3://${BUCKET}/actions-recorder.min.js'
-        arguments: |
-          --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate --acl public-read
+    - run:
+        name: Upload to CDN
+        command: |
+          bash publish.sh
 workflows:
   version: 2
   publish:
