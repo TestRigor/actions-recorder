@@ -66,7 +66,7 @@ export default class Event {
   }
 
   getTarget(event) {
-    let native = event.toElement || event.target || event.srcElement;
+    let native = event.target || event.toElement || event.srcElement;
 
     let path = event.composedPath && event.composedPath();
 
@@ -233,8 +233,8 @@ export default class Event {
 
     if (!identifierText && !isInput(element)) {
       identifiedElement = this.getIdentifiableParent(element, '', 10,
-        useClass, isNotClickOfInput, this.hasPointerCursor(element), useInnerText);
-      descriptor = this.getDescriptor(identifiedElement, useClass, useInnerText);
+        useClass, isNotClickOfInput, this.hasPointerCursor(element), false);
+      descriptor = this.getDescriptor(identifiedElement, useClass, false);
       identifierText = descriptor.value.trim();
       isVisibleText = descriptor.visibleText;
     }
